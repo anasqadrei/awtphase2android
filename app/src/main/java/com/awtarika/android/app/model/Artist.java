@@ -25,11 +25,14 @@ public class Artist {
     }
 
     public static Artist createArtist(JSONObject parsedArtist) throws JSONException {
+
         final Artist artist = new Artist(parsedArtist.getInt("_id"), parsedArtist.getString("name"));
-        artist.url = parsedArtist.getString("url");
-        artist.imageURL = parsedArtist.getString("image");
+
+        artist.url = parsedArtist.optString("url");
+        artist.imageURL = parsedArtist.optString("image");
         artist.totalSongsPages = parsedArtist.getInt("totalSongsPages");
         artist.songsPageSize = parsedArtist.getInt("songsPageSize");
+
         return artist;
     }
 }

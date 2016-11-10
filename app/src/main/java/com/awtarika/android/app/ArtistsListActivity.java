@@ -99,7 +99,7 @@ public class ArtistsListActivity extends AppCompatActivity {
                             mArtistsListAdapter.notifyDataSetChanged();
 
                         } catch (JSONException e) {
-                            Log.v(TAG, "JSON Exception");
+                            Log.v(TAG, "Parsing JSON Exception");
                             e.printStackTrace();
                         } finally {
                             fetching = false;
