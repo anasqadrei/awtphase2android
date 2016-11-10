@@ -19,12 +19,15 @@ import com.awtarika.android.app.model.Artist;
 import com.awtarika.android.app.util.AwtarikaJsonObjectRequest;
 import com.awtarika.android.app.util.Constants;
 import com.awtarika.android.app.util.NetworkingSingleton;
+import com.bumptech.glide.Glide;
 
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
 import java.util.ArrayList;
+
+import de.hdodenhof.circleimageview.CircleImageView;
 
 public class ArtistsListActivity extends AppCompatActivity {
 
@@ -151,9 +154,17 @@ public class ArtistsListActivity extends AppCompatActivity {
                 convertView = layoutInflater.inflate(R.layout.grid_item_artist, null);
             }
 
+            // TextView
             final TextView artistNameTextView = (TextView) convertView.findViewById(R.id.artist_name);
-
             artistNameTextView.setText(artist.name);
+
+            // ImageView
+            final CircleImageView artistImageView = (CircleImageView) convertView.findViewById(R.id.artist_image);
+            Glide.with(mContext)
+                    .load(artist.imageURL)
+                    .centerCrop()
+                    .dontAnimate()
+                    .into(artistImageView);
 
             //load more data
             if (!fetching && lastFetchedPage < totalPages && position >= artists.size() - 4) {
