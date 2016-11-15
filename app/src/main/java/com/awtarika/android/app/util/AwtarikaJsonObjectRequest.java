@@ -15,6 +15,8 @@ import java.util.Map;
 
 public class AwtarikaJsonObjectRequest extends JsonObjectRequest {
 
+    // TODO: 15/11/16 check what the user agent is
+
     public AwtarikaJsonObjectRequest(int method, String url, JSONObject jsonRequest, Response.Listener<JSONObject> listener, Response.ErrorListener errorListener) {
         super(method, url, jsonRequest, listener, errorListener);
     }

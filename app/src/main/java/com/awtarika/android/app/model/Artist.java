@@ -1,5 +1,8 @@
 package com.awtarika.android.app.model;
 
+import android.os.Parcel;
+import android.os.Parcelable;
+
 import org.json.JSONException;
 import org.json.JSONObject;
 
@@ -7,7 +10,7 @@ import org.json.JSONObject;
  * Created by anasqadrei on 10/11/16.
  */
 
-public class Artist {
+public class Artist implements Parcelable {
     public int id;
     public String name;
     public String url;
@@ -35,4 +38,41 @@ public class Artist {
 
         return artist;
     }
+
+    @Override
+    public void writeToParcel(Parcel dest, int flags) {
+        dest.writeInt(id);
+        dest.writeString(name);
+        dest.writeString(url);
+        dest.writeString(imageURL);
+        dest.writeInt(totalSongsPages);
+        dest.writeInt(songsPageSize);
+    }
+
+    private Artist(Parcel in)
+    {
+        id = in.readInt();
+        name = in.readString();
+        url = in.readString();
+        imageURL = in.readString();
+        totalSongsPages = in.readInt();
+        songsPageSize = in.readInt();
+    }
+
+    @Override
+    public int describeContents() {
+        return 0;
+    }
+
+    public static final Parcelable.Creator<Artist> CREATOR = new Parcelable.Creator<Artist>() {
+        public Artist createFromParcel(Parcel in) {
+            return new Artist(in);
+        }
+
+        public Artist[] newArray(int size) {
+            return new Artist[size];
+        }
+    };
+
+
 }

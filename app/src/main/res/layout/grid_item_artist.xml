@@ -3,7 +3,8 @@
     android:orientation="vertical"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:padding="8dp" >
+    android:padding="8dp"
+    android:gravity="center">
 
     <de.hdodenhof.circleimageview.CircleImageView xmlns:app="http://schemas.android.com/apk/res-auto"
         android:id="@+id/artist_image"
@@ -17,6 +18,6 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:gravity="center"
-        android:maxLines="2"
+        android:maxLines="1"
         android:ellipsize="end" />
 </LinearLayout>

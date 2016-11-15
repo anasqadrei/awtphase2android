@@ -31,12 +31,26 @@ import de.hdodenhof.circleimageview.CircleImageView;
 
 public class ArtistsListActivity extends AppCompatActivity {
 
-    private ArtistsListAdapter mArtistsListAdapter;
+    // state variables (to be saved)
+    private ArrayList<Artist> artistsList = new ArrayList<Artist>();
     private int totalPages = 1;
     private int lastFetchedPage = 0;
+
+    private static final String ARTISTS_LIST_ARRAY_KEY = "artistsList";
+    private static final String TOTAL_PAGES_KEY = "totalPages";
+    private static final String LAST_FETCHED_PAGE_KEY = "lastFetchedPage";
+
+    // other variables
     private boolean fetching = false;
-    private String defaultSort = "-songsCount";
+    private ArtistsListAdapter mArtistsListAdapter;
+
+    private static final String DEFAULT_SORT = "-songsCount";
     private static final String TAG = ArtistsListActivity.class.getSimpleName();
+
+    // TODO: 15/11/16 Google Analytics 
+    // TODO: 15/11/16 Segue to next activity
+    // TODO: 15/11/16 Caching on server for volley to cache
+    // TODO: 15/11/16 Log Entries
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -44,31 +58,44 @@ public class ArtistsListActivity extends AppCompatActivity {
         setContentView(R.layout.activity_artists_list);
         setTitle("المطربين");
 
-        mArtistsListAdapter = new ArtistsListAdapter(this, new ArrayList<Artist>());
+        // it means artist list is empty, so fetch artists
+        if (savedInstanceState == null) {
+            getArtistsList(lastFetchedPage + 1, DEFAULT_SORT);
+        }
+
+        mArtistsListAdapter = new ArtistsListAdapter(this);
 
         final GridView gridView = (GridView) findViewById(R.id.grid_view_artists_list);
         gridView.setAdapter(mArtistsListAdapter);
     }
 
     @Override
-    protected void onStart() {
-        super.onStart();
+    protected void onSaveInstanceState(Bundle outState) {
+        super.onSaveInstanceState(outState);
 
-        if (!fetching) {
-            getArtistsList(1, defaultSort);
-        }
+        outState.putInt(TOTAL_PAGES_KEY, totalPages);
+        outState.putInt(LAST_FETCHED_PAGE_KEY, lastFetchedPage);
+        outState.putSerializable(ARTISTS_LIST_ARRAY_KEY, artistsList);
+    }
+
+    @Override
+    protected void onRestoreInstanceState(Bundle savedInstanceState) {
+        super.onRestoreInstanceState(savedInstanceState);
+
+        totalPages = savedInstanceState.getInt(TOTAL_PAGES_KEY);
+        lastFetchedPage = savedInstanceState.getInt(LAST_FETCHED_PAGE_KEY);
+        artistsList = (ArrayList<Artist>) savedInstanceState.getSerializable(ARTISTS_LIST_ARRAY_KEY);
     }
 
     @Override
     protected void onStop() {
         super.onStop();
 
+        fetching = false;
         NetworkingSingleton.getInstance(this).getRequestQueue().cancelAll(TAG);
     }
 
     private void getArtistsList(final int page, String sort) {
-
-        fetching = true;
 
         Uri.Builder builder = new Uri.Builder();
         builder.scheme(Constants.URLs.PROTOCOL)
@@ -90,7 +117,7 @@ public class ArtistsListActivity extends AppCompatActivity {
                             JSONArray jsonArtistsList = response.getJSONArray("artistsList");
 
                             for (int i = 0; i < jsonArtistsList.length(); i++) {
-                                mArtistsListAdapter.artists.add(Artist.createArtist(jsonArtistsList.getJSONObject(i)));
+                                artistsList.add(Artist.createArtist(jsonArtistsList.getJSONObject(i)));
                             }
 
                             lastFetchedPage = page;
@@ -116,63 +143,79 @@ public class ArtistsListActivity extends AppCompatActivity {
         });
         jsObjRequest.setTag(TAG);
 
+        // Start Networking
+        fetching = true;
         NetworkingSingleton.getInstance(this).addToRequestQueue(jsObjRequest);
 
     }
 
     private class ArtistsListAdapter extends BaseAdapter {
         private final Context mContext;
-        ArrayList<Artist> artists;
 
-        ArtistsListAdapter(Context context, ArrayList<Artist> artists) {
+        ArtistsListAdapter(Context context) {
             this.mContext = context;
-            this.artists = artists;
         }
 
         @Override
         public int getCount() {
-            return artists.size();
+            return artistsList.size();
         }
 
         @Override
         public Object getItem(int position) {
-            return artists.get(position);
+            return artistsList.get(position);
         }
 
         @Override
         public long getItemId(int position) {
-            return artists.get(position).id;
+            return artistsList.get(position).id;
         }
 
         @Override
         public View getView(int position, View convertView, ViewGroup parent) {
-            final Artist artist = artists.get(position);
+            //
+            final Artist artist = artistsList.get(position);
 
             // in case it was recycled, recreate it
             if (convertView == null) {
                 final LayoutInflater layoutInflater = LayoutInflater.from(mContext);
                 convertView = layoutInflater.inflate(R.layout.grid_item_artist, null);
+
+                final TextView artistNameTextView = (TextView) convertView.findViewById(R.id.artist_name);
+                final CircleImageView artistImageView = (CircleImageView) convertView.findViewById(R.id.artist_image);
+
+                final ViewHolder viewHolder = new ViewHolder(artistNameTextView, artistImageView);
+                convertView.setTag(viewHolder);
             }
 
+            final ViewHolder viewHolder = (ViewHolder) convertView.getTag();
             // TextView
-            final TextView artistNameTextView = (TextView) convertView.findViewById(R.id.artist_name);
-            artistNameTextView.setText(artist.name);
+            viewHolder.artistNameTextView.setText(artist.name);
 
             // ImageView
-            final CircleImageView artistImageView = (CircleImageView) convertView.findViewById(R.id.artist_image);
             Glide.with(mContext)
                     .load(artist.imageURL)
                     .centerCrop()
                     .dontAnimate()
-                    .into(artistImageView);
+                    .into(viewHolder.artistImageView);
 
             //load more data
-            if (!fetching && lastFetchedPage < totalPages && position >= artists.size() - 4) {
-                Log.v(TAG, "fetching at pos: " + position);
-                getArtistsList(lastFetchedPage + 1, defaultSort);
+            if (!fetching && lastFetchedPage < totalPages && position >= artistsList.size() - 4) {
+                getArtistsList(lastFetchedPage + 1, DEFAULT_SORT);
             }
 
             return convertView;
+        }
+
+        // View Holder Design Pattern for performance enhancements
+        private class ViewHolder {
+            private final TextView artistNameTextView;
+            private final CircleImageView artistImageView;
+
+            ViewHolder(TextView artistNameTextView, CircleImageView artistImageView) {
+                this.artistNameTextView = artistNameTextView;
+                this.artistImageView = artistImageView;
+            }
         }
     }
 }
