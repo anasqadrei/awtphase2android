@@ -31,7 +31,7 @@ import de.hdodenhof.circleimageview.CircleImageView;
 
 public class ArtistsListActivity extends AppCompatActivity {
 
-    // state variables (to be saved)
+    // state variables  that has to be saved
     private ArrayList<Artist> artistsList = new ArrayList<Artist>();
     private int totalPages = 1;
     private int lastFetchedPage = 0;
@@ -58,7 +58,7 @@ public class ArtistsListActivity extends AppCompatActivity {
         setContentView(R.layout.activity_artists_list);
         setTitle("المطربين");
 
-        // it means artist list is empty, so fetch artists
+        // it means artistsList array is empty, so fetch artists
         if (savedInstanceState == null) {
             getArtistsList(lastFetchedPage + 1, DEFAULT_SORT);
         }
@@ -73,6 +73,7 @@ public class ArtistsListActivity extends AppCompatActivity {
     protected void onSaveInstanceState(Bundle outState) {
         super.onSaveInstanceState(outState);
 
+        // save state
         outState.putInt(TOTAL_PAGES_KEY, totalPages);
         outState.putInt(LAST_FETCHED_PAGE_KEY, lastFetchedPage);
         outState.putSerializable(ARTISTS_LIST_ARRAY_KEY, artistsList);
@@ -82,6 +83,7 @@ public class ArtistsListActivity extends AppCompatActivity {
     protected void onRestoreInstanceState(Bundle savedInstanceState) {
         super.onRestoreInstanceState(savedInstanceState);
 
+        // restore state
         totalPages = savedInstanceState.getInt(TOTAL_PAGES_KEY);
         lastFetchedPage = savedInstanceState.getInt(LAST_FETCHED_PAGE_KEY);
         artistsList = (ArrayList<Artist>) savedInstanceState.getSerializable(ARTISTS_LIST_ARRAY_KEY);
@@ -91,12 +93,14 @@ public class ArtistsListActivity extends AppCompatActivity {
     protected void onStop() {
         super.onStop();
 
+        // cancel network activities
         fetching = false;
         NetworkingSingleton.getInstance(this).getRequestQueue().cancelAll(TAG);
     }
 
     private void getArtistsList(final int page, String sort) {
 
+        // build request url
         Uri.Builder builder = new Uri.Builder();
         builder.scheme(Constants.URLs.PROTOCOL)
                 .authority(Constants.URLs.HOST)
@@ -106,6 +110,7 @@ public class ArtistsListActivity extends AppCompatActivity {
                 .build();
         String url = builder.toString();
 
+        // define callback
         AwtarikaJsonObjectRequest jsObjRequest = new AwtarikaJsonObjectRequest (Request.Method.GET, url, null,
                 new Response.Listener<JSONObject>() {
 
@@ -114,15 +119,19 @@ public class ArtistsListActivity extends AppCompatActivity {
 
                         try {
 
+                            // parse incoming data
                             JSONArray jsonArtistsList = response.getJSONArray("artistsList");
 
+                            // fill artistsList
                             for (int i = 0; i < jsonArtistsList.length(); i++) {
                                 artistsList.add(Artist.createArtist(jsonArtistsList.getJSONObject(i)));
                             }
 
+                            // set artist page related values
                             lastFetchedPage = page;
                             totalPages = response.getInt("totalPages");
 
+                            // signal reload data
                             mArtistsListAdapter.notifyDataSetChanged();
 
                         } catch (JSONException e) {
@@ -143,7 +152,7 @@ public class ArtistsListActivity extends AppCompatActivity {
         });
         jsObjRequest.setTag(TAG);
 
-        // Start Networking
+        // call the request url
         fetching = true;
         NetworkingSingleton.getInstance(this).addToRequestQueue(jsObjRequest);
 
@@ -173,7 +182,7 @@ public class ArtistsListActivity extends AppCompatActivity {
 
         @Override
         public View getView(int position, View convertView, ViewGroup parent) {
-            //
+            // item variable
             final Artist artist = artistsList.get(position);
 
             // in case it was recycled, recreate it
@@ -181,25 +190,27 @@ public class ArtistsListActivity extends AppCompatActivity {
                 final LayoutInflater layoutInflater = LayoutInflater.from(mContext);
                 convertView = layoutInflater.inflate(R.layout.grid_item_artist, null);
 
+                // inflate views
                 final TextView artistNameTextView = (TextView) convertView.findViewById(R.id.artist_name);
                 final CircleImageView artistImageView = (CircleImageView) convertView.findViewById(R.id.artist_image);
 
+                // add them to view holder
                 final ViewHolder viewHolder = new ViewHolder(artistNameTextView, artistImageView);
                 convertView.setTag(viewHolder);
             }
 
+            // get views from view holder
             final ViewHolder viewHolder = (ViewHolder) convertView.getTag();
-            // TextView
-            viewHolder.artistNameTextView.setText(artist.name);
 
-            // ImageView
+            // set views
+            viewHolder.artistNameTextView.setText(artist.name);
             Glide.with(mContext)
                     .load(artist.imageURL)
                     .centerCrop()
                     .dontAnimate()
                     .into(viewHolder.artistImageView);
 
-            //load more data
+            // load more data
             if (!fetching && lastFetchedPage < totalPages && position >= artistsList.size() - 4) {
                 getArtistsList(lastFetchedPage + 1, DEFAULT_SORT);
             }
@@ -207,7 +218,7 @@ public class ArtistsListActivity extends AppCompatActivity {
             return convertView;
         }
 
-        // View Holder Design Pattern for performance enhancements
+        // view holder design pattern for performance enhancements
         private class ViewHolder {
             private final TextView artistNameTextView;
             private final CircleImageView artistImageView;

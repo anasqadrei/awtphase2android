@@ -49,14 +49,14 @@ public class Artist implements Parcelable {
         dest.writeInt(songsPageSize);
     }
 
-    private Artist(Parcel in)
+    private Artist(Parcel src)
     {
-        id = in.readInt();
-        name = in.readString();
-        url = in.readString();
-        imageURL = in.readString();
-        totalSongsPages = in.readInt();
-        songsPageSize = in.readInt();
+        id = src.readInt();
+        name = src.readString();
+        url = src.readString();
+        imageURL = src.readString();
+        totalSongsPages = src.readInt();
+        songsPageSize = src.readInt();
     }
 
     @Override
@@ -73,6 +73,4 @@ public class Artist implements Parcelable {
             return new Artist[size];
         }
     };
-
-
 }
