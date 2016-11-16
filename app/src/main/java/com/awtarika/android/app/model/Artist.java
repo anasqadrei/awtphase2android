@@ -17,6 +17,8 @@ public class Artist implements Parcelable {
     public String imageURL;
     public int totalSongsPages;
     public int songsPageSize;
+    public int likersCount;
+    public int songsCount;
 
     public Artist(int id, String name) {
         this.id = id;

@@ -1,6 +1,7 @@
 package com.awtarika.android.app;
 
 import android.content.Context;
+import android.content.Intent;
 import android.net.Uri;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
@@ -8,6 +9,7 @@ import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.AdapterView;
 import android.widget.BaseAdapter;
 import android.widget.GridView;
 import android.widget.TextView;
@@ -47,8 +49,7 @@ public class ArtistsListActivity extends AppCompatActivity {
     private static final String DEFAULT_SORT = "-songsCount";
     private static final String TAG = ArtistsListActivity.class.getSimpleName();
 
-    // TODO: 15/11/16 Google Analytics 
-    // TODO: 15/11/16 Segue to next activity
+    // TODO: 15/11/16 Google Analytics
     // TODO: 15/11/16 Caching on server for volley to cache
     // TODO: 15/11/16 Log Entries
 
@@ -67,6 +68,15 @@ public class ArtistsListActivity extends AppCompatActivity {
 
         final GridView gridView = (GridView) findViewById(R.id.grid_view_artists_list);
         gridView.setAdapter(mArtistsListAdapter);
+        gridView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
+            @Override
+            public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
+                // pass selected artist to the next view
+                Intent artistIntent = new Intent(parent.getContext(), ArtistActivity.class);
+                artistIntent.putExtra(Artist.class.getSimpleName(), (Artist) parent.getItemAtPosition(position));
+                startActivity(artistIntent);
+            }
+        });
     }
 
     @Override
