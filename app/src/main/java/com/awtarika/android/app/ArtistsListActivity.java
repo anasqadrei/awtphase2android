@@ -66,7 +66,7 @@ public class ArtistsListActivity extends AppCompatActivity {
 
         mArtistsListAdapter = new ArtistsListAdapter(this);
 
-        final GridView gridView = (GridView) findViewById(R.id.grid_view_artists_list);
+        final GridView gridView = (GridView) findViewById(R.id.activity_artists_list_artists_list);
         gridView.setAdapter(mArtistsListAdapter);
         gridView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
             @Override
@@ -201,8 +201,8 @@ public class ArtistsListActivity extends AppCompatActivity {
                 convertView = layoutInflater.inflate(R.layout.grid_item_artist, null);
 
                 // inflate views
-                final TextView artistNameTextView = (TextView) convertView.findViewById(R.id.artist_name);
-                final CircleImageView artistImageView = (CircleImageView) convertView.findViewById(R.id.artist_image);
+                final TextView artistNameTextView = (TextView) convertView.findViewById(R.id.grid_item_artist_name);
+                final CircleImageView artistImageView = (CircleImageView) convertView.findViewById(R.id.grid_item_artist_image);
 
                 // add them to view holder
                 final ViewHolder viewHolder = new ViewHolder(artistNameTextView, artistImageView);

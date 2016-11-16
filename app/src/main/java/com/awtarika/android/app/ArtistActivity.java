@@ -32,7 +32,6 @@ import de.hdodenhof.circleimageview.CircleImageView;
 
 public class ArtistActivity extends AppCompatActivity {
 
-    // TODO: 16/11/16 finish artist activity
     // state variables  that has to be saved
     private ArrayList<Song> songsList = new ArrayList<Song>();
     private int totalPages = 1;
