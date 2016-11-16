@@ -11,7 +11,7 @@
     tools:context="com.awtarika.android.app.ArtistActivity">
 
     <de.hdodenhof.circleimageview.CircleImageView xmlns:app="http://schemas.android.com/apk/res-auto"
-        android:id="@+id/artist_image"
+        android:id="@+id/activity_artist_image"
         android:layout_width="96dp"
         android:layout_height="96dp"
         android:layout_alignParentTop="true"
@@ -26,28 +26,36 @@
         android:layout_height="96dp"
         android:paddingRight="@dimen/activity_horizontal_margin"
         android:paddingLeft="@dimen/activity_horizontal_margin"
-        android:layout_toLeftOf="@id/artist_image"
-        android:layout_toStartOf="@id/artist_image"
+        android:layout_toLeftOf="@id/activity_artist_image"
+        android:layout_toStartOf="@id/activity_artist_image"
         android:weightSum="3">
 
         <TextView
-            android:id="@+id/artist_name"
+            android:id="@+id/activity_artist_name"
             android:layout_width="match_parent"
-            android:layout_height="wrap_content" />
+            android:layout_height="0dp"
+            android:layout_weight="1"
+            android:gravity="center_vertical" />
         <TextView
-            android:id="@+id/artist_likers_count"
+            android:id="@+id/activity_artist_likers_count"
             android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:text="عدد المعجبين: 4" />
+            android:layout_height="0dp"
+            android:layout_weight="1"
+            android:gravity="center_vertical" />
         <TextView
-            android:id="@+id/artist_songs_count"
+            android:id="@+id/activity_artist_songs_count"
             android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:text="عدد الاغاني: 570" />
+            android:layout_height="0dp"
+            android:layout_weight="1"
+            android:gravity="center_vertical" />
     </LinearLayout>
 
     <ListView
         android:layout_width="match_parent"
-        android:layout_height="match_parent" />
+        android:layout_height="match_parent"
+        android:layout_below="@id/activity_artist_image"
+        android:id="@+id/activity_artist_songs_list"
+        android:divider="@null"
+        android:dividerHeight="0dp" />
 
 </RelativeLayout>

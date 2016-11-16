@@ -86,7 +86,7 @@ public class ArtistsListActivity extends AppCompatActivity {
         // save state
         outState.putInt(TOTAL_PAGES_KEY, totalPages);
         outState.putInt(LAST_FETCHED_PAGE_KEY, lastFetchedPage);
-        outState.putSerializable(ARTISTS_LIST_ARRAY_KEY, artistsList);
+        outState.putParcelableArrayList(ARTISTS_LIST_ARRAY_KEY, artistsList);
     }
 
     @Override
@@ -96,7 +96,7 @@ public class ArtistsListActivity extends AppCompatActivity {
         // restore state
         totalPages = savedInstanceState.getInt(TOTAL_PAGES_KEY);
         lastFetchedPage = savedInstanceState.getInt(LAST_FETCHED_PAGE_KEY);
-        artistsList = (ArrayList<Artist>) savedInstanceState.getSerializable(ARTISTS_LIST_ARRAY_KEY);
+        artistsList = savedInstanceState.getParcelableArrayList(ARTISTS_LIST_ARRAY_KEY);
     }
 
     @Override

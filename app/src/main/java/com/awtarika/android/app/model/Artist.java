@@ -27,6 +27,8 @@ public class Artist implements Parcelable {
         // Defaults
         totalSongsPages = 1;
         songsPageSize = 20;
+        likersCount = 0;
+        songsCount = 0;
     }
 
     public static Artist createArtist(JSONObject parsedArtist) throws JSONException {
@@ -37,6 +39,8 @@ public class Artist implements Parcelable {
         artist.imageURL = parsedArtist.optString("image");
         artist.totalSongsPages = parsedArtist.getInt("totalSongsPages");
         artist.songsPageSize = parsedArtist.getInt("songsPageSize");
+        artist.likersCount = parsedArtist.getInt("likersCount");
+        artist.songsCount = parsedArtist.getInt("songsCount");
 
         return artist;
     }
@@ -49,6 +53,8 @@ public class Artist implements Parcelable {
         dest.writeString(imageURL);
         dest.writeInt(totalSongsPages);
         dest.writeInt(songsPageSize);
+        dest.writeInt(likersCount);
+        dest.writeInt(songsCount);
     }
 
     private Artist(Parcel src)
@@ -59,6 +65,8 @@ public class Artist implements Parcelable {
         imageURL = src.readString();
         totalSongsPages = src.readInt();
         songsPageSize = src.readInt();
+        likersCount = src.readInt();
+        songsCount = src.readInt();
     }
 
     @Override
