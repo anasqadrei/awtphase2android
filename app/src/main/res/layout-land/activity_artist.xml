@@ -22,7 +22,7 @@
 
     <LinearLayout
         android:orientation="vertical"
-        android:layout_width="match_parent"
+        android:layout_width="144dp"
         android:layout_height="96dp"
         android:paddingRight="@dimen/activity_horizontal_margin"
         android:paddingLeft="@dimen/activity_horizontal_margin"
@@ -53,9 +53,11 @@
     <ListView
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:layout_below="@id/activity_artist_image"
+        android:layout_toLeftOf="@id/activity_artist_summery"
+        android:layout_toStartOf="@id/activity_artist_summery"
         android:id="@+id/activity_artist_songs_list"
         android:divider="@null"
-        android:dividerHeight="0dp" />
+        android:dividerHeight="0dp"
+        android:verticalScrollbarPosition="left" />
 
 </RelativeLayout>

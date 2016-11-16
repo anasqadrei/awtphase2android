@@ -49,6 +49,8 @@ public class ArtistActivity extends AppCompatActivity {
     private static final String DEFAULT_SORT = "-playsCount";
     private static final String TAG = ArtistActivity.class.getSimpleName();
 
+    // TODO: 17/11/16 share button
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
