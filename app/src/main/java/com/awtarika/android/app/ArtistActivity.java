@@ -3,10 +3,15 @@ package com.awtarika.android.app;
 import android.content.Context;
 import android.content.Intent;
 import android.net.Uri;
+import android.support.v4.view.MenuItemCompat;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
+import android.support.v7.widget.ShareActionProvider;
 import android.util.Log;
 import android.view.LayoutInflater;
+import android.view.Menu;
+import android.view.MenuInflater;
+import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.BaseAdapter;
@@ -33,7 +38,7 @@ import de.hdodenhof.circleimageview.CircleImageView;
 public class ArtistActivity extends AppCompatActivity {
 
     // state variables  that has to be saved
-    private ArrayList<Song> songsList = new ArrayList<Song>();
+    private ArrayList<Song> songsList = new ArrayList<>();
     private int totalPages = 1;
     private int lastFetchedPage = 0;
 
@@ -48,8 +53,6 @@ public class ArtistActivity extends AppCompatActivity {
 
     private static final String DEFAULT_SORT = "-playsCount";
     private static final String TAG = ArtistActivity.class.getSimpleName();
-
-    // TODO: 17/11/16 share button
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -93,11 +96,13 @@ public class ArtistActivity extends AppCompatActivity {
 //                @Override
 //                public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
 //                    // pass selected artist to the next view
-//                    Intent artistIntent = new Intent(parent.getContext(), ArtistActivity.class);
-//                    artistIntent.putExtra(Artist.class.getSimpleName(), (Artist) parent.getItemAtPosition(position));
-//                    startActivity(artistIntent);
+//                    Intent songIntent = new Intent(parent.getContext(), SongActivity.class);
+//                    songIntent.putExtra(Song.class.getSimpleName(), (Song) parent.getItemAtPosition(position));
+//                    startActivity(songIntent);
 //                }
 //            });
+        } else {
+            Log.v(TAG, "artist is not here, say something");
         }
     }
 
@@ -128,6 +133,26 @@ public class ArtistActivity extends AppCompatActivity {
         // cancel network activities
         fetching = false;
         NetworkingSingleton.getInstance(this).getRequestQueue().cancelAll(TAG);
+    }
+
+    @Override
+    public boolean onCreateOptionsMenu(Menu menu) {
+        // inflate menu
+        MenuInflater inflater = getMenuInflater();
+        inflater.inflate(R.menu.main, menu);
+
+        // set action provider for share menu item
+        MenuItem shareItem = menu.findItem(R.id.menu_share);
+        ShareActionProvider mShareActionProvider = (ShareActionProvider) MenuItemCompat.getActionProvider(shareItem);
+        if (mShareActionProvider != null) {
+            Intent shareIntent = new Intent(Intent.ACTION_SEND);
+            shareIntent.setType("text/plain");
+            shareIntent.putExtra(Intent.EXTRA_SUBJECT, artist.name);
+            shareIntent.putExtra(Intent.EXTRA_TEXT, artist.url);
+            mShareActionProvider.setShareIntent(shareIntent);
+        }
+
+        return true;
     }
 
     private void getSongsList(final int page, String sort) {

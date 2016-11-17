@@ -1,5 +1,6 @@
 <resources>
     <string name="app_name">أوتاريكا</string>
+    <string name="share">إرسال</string>
     <string name="artist_likers_count">عدد المعجبين: %1$d</string>
     <string name="artist_songs_count">عدد الاغاني: %1$d</string>
 </resources>
