@@ -3,15 +3,10 @@ package com.awtarika.android.app;
 import android.content.Context;
 import android.content.Intent;
 import android.net.Uri;
-import android.support.v4.view.MenuItemCompat;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
-import android.support.v7.widget.ShareActionProvider;
 import android.util.Log;
 import android.view.LayoutInflater;
-import android.view.Menu;
-import android.view.MenuInflater;
-import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.AdapterView;
@@ -22,21 +17,18 @@ import android.widget.TextView;
 import com.android.volley.Request;
 import com.android.volley.Response;
 import com.android.volley.VolleyError;
-import com.awtarika.android.app.model.Artist;
 import com.awtarika.android.app.model.Song;
-import com.awtarika.android.app.util.AwtarikaJsonArrayRequest;
+import com.awtarika.android.app.util.AwtarikaJsonObjectRequest;
 import com.awtarika.android.app.util.Constants;
 import com.awtarika.android.app.util.NetworkingSingleton;
-import com.bumptech.glide.Glide;
 
 import org.json.JSONArray;
 import org.json.JSONException;
+import org.json.JSONObject;
 
 import java.util.ArrayList;
 
-import de.hdodenhof.circleimageview.CircleImageView;
-
-public class ArtistActivity extends AppCompatActivity {
+public class HashtagActivity extends AppCompatActivity {
 
     // state variables  that has to be saved
     private ArrayList<Song> songsList = new ArrayList<>();
@@ -48,54 +40,31 @@ public class ArtistActivity extends AppCompatActivity {
     private static final String LAST_FETCHED_PAGE_KEY = "lastFetchedPage";
 
     // other variables
-    private Artist artist;
+    private String hashtag;
     private boolean fetching = false;
-    private SongsListAdapter mSongsListAdapter;
+    private DetailedSongsListAdapter mSongsListAdapter;
 
-    private static final String DEFAULT_SORT = "-playsCount";
-    private static final String TAG = ArtistActivity.class.getSimpleName();
+    private static final String TAG = HashtagActivity.class.getSimpleName();
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_artist);
+        setContentView(R.layout.activity_hashtag);
 
         Intent intent = getIntent();
-        if (intent != null && intent.hasExtra(Artist.class.getSimpleName())) {
-            artist = intent.getParcelableExtra(Artist.class.getSimpleName());
-            setTitle(artist.name);
-
-            // TODO: 17/11/16 UP navigation
-
-            totalPages = artist.totalSongsPages;
-
-            // image and text views of the artist
-            final TextView artistNameTextView = (TextView) findViewById(R.id.activity_artist_name);
-            artistNameTextView.setText(artist.name);
-
-            final TextView artistLikersCountTextView = (TextView) findViewById(R.id.activity_artist_likers_count);
-            artistLikersCountTextView.setText(String.format(getResources().getString(R.string.artist_likers_count), artist.likersCount));
-
-            final TextView artistSongsCountTextView = (TextView) findViewById(R.id.activity_artist_songs_count);
-            artistSongsCountTextView.setText(String.format(getResources().getString(R.string.artist_songs_count), artist.songsCount));
-
-            final CircleImageView artistImageView = (CircleImageView) findViewById(R.id.activity_artist_image);
-            Glide.with(this)
-                    .load(artist.imageURL)
-                    .centerCrop()
-                    .dontAnimate()
-                    .into(artistImageView);
-
+        if (intent != null && intent.hasExtra("hashtag")) {
+            hashtag = intent.getStringExtra("hashtag");
+            setTitle(hashtag);
 
             // it means songsList array is empty, so fetch songs
             if (savedInstanceState == null) {
-                getSongsList(lastFetchedPage + 1, DEFAULT_SORT);
+                getSongsList(lastFetchedPage + 1);
             }
 
             // songs list
-            mSongsListAdapter = new SongsListAdapter(this);
+            mSongsListAdapter = new DetailedSongsListAdapter(this);
 
-            final ListView listView = (ListView) findViewById(R.id.activity_artist_songs_list);
+            final ListView listView = (ListView) findViewById(R.id.activity_hashtag_songs_list);
             listView.setAdapter(mSongsListAdapter);
             listView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
                 @Override
@@ -107,7 +76,7 @@ public class ArtistActivity extends AppCompatActivity {
                 }
             });
         } else {
-            Log.v(TAG, "artist is not here, say something");
+            Log.v(TAG, "Hashtag is not here!!!");
         }
     }
 
@@ -140,49 +109,30 @@ public class ArtistActivity extends AppCompatActivity {
         NetworkingSingleton.getInstance(this).getRequestQueue().cancelAll(TAG);
     }
 
-    @Override
-    public boolean onCreateOptionsMenu(Menu menu) {
-        // inflate menu
-        MenuInflater inflater = getMenuInflater();
-        inflater.inflate(R.menu.main, menu);
-
-        // set action provider for share menu item
-        MenuItem shareItem = menu.findItem(R.id.menu_share);
-        ShareActionProvider mShareActionProvider = (ShareActionProvider) MenuItemCompat.getActionProvider(shareItem);
-        if (mShareActionProvider != null) {
-            Intent shareIntent = new Intent(Intent.ACTION_SEND);
-            shareIntent.setType("text/plain");
-            shareIntent.putExtra(Intent.EXTRA_SUBJECT, artist.name);
-            shareIntent.putExtra(Intent.EXTRA_TEXT, artist.url);
-            mShareActionProvider.setShareIntent(shareIntent);
-        }
-
-        return true;
-    }
-
-    private void getSongsList(final int page, String sort) {
+    private void getSongsList(final int page) {
 
         // build request url
         Uri.Builder builder = new Uri.Builder();
         builder.scheme(Constants.URLs.PROTOCOL)
                 .authority(Constants.URLs.HOST)
-                .appendPath("song")
-                .appendPath("list")
-                .appendQueryParameter("artist", String.valueOf(artist.id))
+                .appendPath("hashtag")
+                .appendPath(hashtag.replaceFirst("#", ""))
                 .appendQueryParameter("page", String.valueOf(page))
-                .appendQueryParameter("pagesize", String.valueOf(artist.songsPageSize))
-                .appendQueryParameter("sort", sort)
                 .build();
         String url = builder.toString();
+        Log.v(TAG, url);
 
         // define callback
-        AwtarikaJsonArrayRequest jsArrRequest = new AwtarikaJsonArrayRequest (Request.Method.GET, url, null,
-                new Response.Listener<JSONArray>() {
+        AwtarikaJsonObjectRequest jsObjRequest = new AwtarikaJsonObjectRequest(Request.Method.GET, url, null,
+                new Response.Listener<JSONObject>() {
 
                     @Override
-                    public void onResponse(JSONArray jsonSongsList) {
+                    public void onResponse(JSONObject response) {
 
                         try {
+
+                            // parse incoming data
+                            JSONArray jsonSongsList = response.getJSONArray("songsList");
 
                             // fill songsList
                             for (int i = 0; i < jsonSongsList.length(); i++) {
@@ -191,6 +141,7 @@ public class ArtistActivity extends AppCompatActivity {
 
                             // set song page related values
                             lastFetchedPage = page;
+                            totalPages = response.getInt("totalPages");
 
                             // signal reload data
                             mSongsListAdapter.notifyDataSetChanged();
@@ -211,18 +162,18 @@ public class ArtistActivity extends AppCompatActivity {
                 fetching = false;
             }
         });
-        jsArrRequest.setTag(TAG);
+        jsObjRequest.setTag(TAG);
 
         // call the request url
         fetching = true;
-        NetworkingSingleton.getInstance(this).addToRequestQueue(jsArrRequest);
+        NetworkingSingleton.getInstance(this).addToRequestQueue(jsObjRequest);
 
     }
 
-    private class SongsListAdapter extends BaseAdapter {
+    private class DetailedSongsListAdapter extends BaseAdapter {
         private final Context mContext;
 
-        SongsListAdapter(Context context) {
+        DetailedSongsListAdapter(Context context) {
             this.mContext = context;
         }
 
@@ -249,29 +200,31 @@ public class ArtistActivity extends AppCompatActivity {
             // in case it was recycled, recreate it
             if (convertView == null) {
                 final LayoutInflater layoutInflater = LayoutInflater.from(mContext);
-                convertView = layoutInflater.inflate(R.layout.list_item_song, null);
+                convertView = layoutInflater.inflate(R.layout.list_item_detailed_song, null);
 
                 // inflate views
-                final TextView songTitleTextView = (TextView) convertView.findViewById(R.id.list_item_song_title);
-                final TextView durationTextView = (TextView) convertView.findViewById(R.id.list_item_song_duration);
-                final TextView playsCountTextView = (TextView) convertView.findViewById(R.id.list_item_song_plays_count);
+                final TextView songTitleTextView = (TextView) convertView.findViewById(R.id.list_item_detailed_song_title);
+                final TextView artistNameTextView = (TextView) convertView.findViewById(R.id.list_item_detailed_song_artist_name);
+                final TextView durationTextView = (TextView) convertView.findViewById(R.id.list_item_detailed_song_duration);
+                final TextView playsCountTextView = (TextView) convertView.findViewById(R.id.list_item_detailed_song_plays_count);
 
                 // add them to view holder
-                final ViewHolder viewHolder = new ViewHolder(songTitleTextView, durationTextView, playsCountTextView);
+                final HashtagActivity.DetailedSongsListAdapter.ViewHolder viewHolder = new HashtagActivity.DetailedSongsListAdapter.ViewHolder(songTitleTextView, artistNameTextView, durationTextView, playsCountTextView);
                 convertView.setTag(viewHolder);
             }
 
             // get views from view holder
-            final ViewHolder viewHolder = (ViewHolder) convertView.getTag();
+            final HashtagActivity.DetailedSongsListAdapter.ViewHolder viewHolder = (HashtagActivity.DetailedSongsListAdapter.ViewHolder) convertView.getTag();
 
             // set views
             viewHolder.songTitleTextView.setText(song.title);
+            viewHolder.artistNameTextView.setText(song.artistName);
             viewHolder.durationTextView.setText(song.durationDesc);
             viewHolder.playsCountTextView.setText(String.valueOf(song.playsCount));
 
             // load more data
             if (!fetching && lastFetchedPage < totalPages && position >= songsList.size() - 4) {
-                getSongsList(lastFetchedPage + 1, DEFAULT_SORT);
+                getSongsList(lastFetchedPage + 1);
             }
 
             return convertView;
@@ -280,11 +233,13 @@ public class ArtistActivity extends AppCompatActivity {
         // view holder design pattern for performance enhancements
         private class ViewHolder {
             private final TextView songTitleTextView;
+            private final TextView artistNameTextView;
             private final TextView durationTextView;
             private final TextView playsCountTextView;
 
-            ViewHolder(TextView songTitleTextView, TextView durationTextView, TextView playsCountTextView) {
+            ViewHolder(TextView songTitleTextView, TextView artistNameTextView, TextView durationTextView, TextView playsCountTextView) {
                 this.songTitleTextView = songTitleTextView;
+                this.artistNameTextView = artistNameTextView;
                 this.durationTextView = durationTextView;
                 this.playsCountTextView = playsCountTextView;
             }

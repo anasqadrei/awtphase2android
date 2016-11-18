@@ -58,9 +58,12 @@ public class SongActivity extends AppCompatActivity {
                     .setTextColor(Color.parseColor("#003569"))
                     .setClickListener(new Link.OnClickListener() {
                         @Override
-                        public void onClick(String text) {
-                            // go to the hashtag activity
-                            Log.v(TAG, text);
+                        public void onClick(String hashtagText) {
+                            // TODO: 19/11/16 Find the right context 
+                            // pass selected hashtag to the next view
+                            Intent hashtagIntent = new Intent(getApplicationContext(), HashtagActivity.class);
+                            hashtagIntent.putExtra("hashtag", hashtagText);
+                            startActivity(hashtagIntent);
                         }
                     });
 

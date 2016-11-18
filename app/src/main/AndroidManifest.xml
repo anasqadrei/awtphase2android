@@ -18,7 +18,8 @@
             </intent-filter>
         </activity>
         <activity android:name=".ArtistActivity" />
-        <activity android:name=".SongActivity"></activity>
+        <activity android:name=".SongActivity" />
+        <activity android:name=".HashtagActivity"></activity>
     </application>
 
 </manifest>
