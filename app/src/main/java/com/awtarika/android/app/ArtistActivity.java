@@ -14,6 +14,7 @@ import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.AdapterView;
 import android.widget.BaseAdapter;
 import android.widget.ListView;
 import android.widget.TextView;
@@ -64,8 +65,11 @@ public class ArtistActivity extends AppCompatActivity {
             artist = intent.getParcelableExtra(Artist.class.getSimpleName());
             setTitle(artist.name);
 
+            // TODO: 17/11/16 UP navigation
+
             totalPages = artist.totalSongsPages;
 
+            // image and text views of the artist
             final TextView artistNameTextView = (TextView) findViewById(R.id.activity_artist_name);
             artistNameTextView.setText(artist.name);
 
@@ -88,19 +92,20 @@ public class ArtistActivity extends AppCompatActivity {
                 getSongsList(lastFetchedPage + 1, DEFAULT_SORT);
             }
 
+            // songs list
             mSongsListAdapter = new SongsListAdapter(this);
 
             final ListView listView = (ListView) findViewById(R.id.activity_artist_songs_list);
             listView.setAdapter(mSongsListAdapter);
-//            listView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
-//                @Override
-//                public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
-//                    // pass selected artist to the next view
-//                    Intent songIntent = new Intent(parent.getContext(), SongActivity.class);
-//                    songIntent.putExtra(Song.class.getSimpleName(), (Song) parent.getItemAtPosition(position));
-//                    startActivity(songIntent);
-//                }
-//            });
+            listView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
+                @Override
+                public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
+                    // pass selected song to the next view
+                    Intent songIntent = new Intent(parent.getContext(), SongActivity.class);
+                    songIntent.putExtra(Song.class.getSimpleName(), (Song) parent.getItemAtPosition(position));
+                    startActivity(songIntent);
+                }
+            });
         } else {
             Log.v(TAG, "artist is not here, say something");
         }
