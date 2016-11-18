@@ -120,7 +120,6 @@ public class HashtagActivity extends AppCompatActivity {
                 .appendQueryParameter("page", String.valueOf(page))
                 .build();
         String url = builder.toString();
-        Log.v(TAG, url);
 
         // define callback
         AwtarikaJsonObjectRequest jsObjRequest = new AwtarikaJsonObjectRequest(Request.Method.GET, url, null,
