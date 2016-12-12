@@ -3,7 +3,6 @@ package com.awtarika.android.app;
 import android.content.Context;
 import android.content.Intent;
 import android.net.Uri;
-import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.LayoutInflater;
@@ -28,7 +27,7 @@ import org.json.JSONObject;
 
 import java.util.ArrayList;
 
-public class HashtagActivity extends AppCompatActivity {
+public class HashtagActivity extends BaseActivity {
 
     // state variables  that has to be saved
     private ArrayList<Song> songsList = new ArrayList<>();
@@ -114,7 +113,7 @@ public class HashtagActivity extends AppCompatActivity {
         // build request url
         Uri.Builder builder = new Uri.Builder();
         builder.scheme(Constants.URLs.PROTOCOL)
-                .authority(Constants.URLs.HOST)
+                .encodedAuthority(Constants.URLs.HOST)
                 .appendPath("hashtag")
                 .appendPath(hashtag.replaceFirst("#", ""))
                 .appendQueryParameter("page", String.valueOf(page))

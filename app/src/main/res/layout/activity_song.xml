@@ -5,15 +5,19 @@
     android:id="@+id/activity_song"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:paddingBottom="@dimen/activity_vertical_margin"
-    android:paddingLeft="@dimen/activity_horizontal_margin"
-    android:paddingRight="@dimen/activity_horizontal_margin"
     android:paddingTop="@dimen/activity_vertical_margin"
     tools:context="com.awtarika.android.app.SongActivity">
+
+    <FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+        android:id="@+id/fragment_mini_player"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_alignParentBottom="true" />
 
     <de.hdodenhof.circleimageview.CircleImageView
         android:layout_width="96dp"
         android:layout_height="96dp"
+        android:layout_marginLeft="@dimen/activity_horizontal_margin"
         android:layout_alignParentTop="true"
         android:layout_alignParentLeft="true"
         android:layout_alignParentStart="true"
@@ -25,6 +29,7 @@
         android:orientation="vertical"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
+        android:layout_marginRight="@dimen/activity_horizontal_margin"
         android:layout_alignParentTop="true"
         android:layout_toRightOf="@id/activity_song_image"
         android:layout_toEndOf="@id/activity_song_image"
@@ -49,13 +54,16 @@
             android:layout_height="48dp"
             android:layout_gravity="center"
             android:id="@+id/activity_song_play"
-            android:background="@android:drawable/ic_media_play" />
+            android:background="@android:drawable/ic_media_play"
+            android:onClick="play" />
     </LinearLayout>
 
     <LinearLayout
         android:orientation="horizontal"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
+        android:layout_marginLeft="@dimen/activity_horizontal_margin"
+        android:layout_marginRight="@dimen/activity_horizontal_margin"
         android:layout_below="@id/activity_song_header"
         android:id="@+id/activity_song_stats">
 
@@ -103,6 +111,10 @@
     <com.apradanas.simplelinkabletext.LinkableTextView
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
+        android:layout_marginLeft="@dimen/activity_horizontal_margin"
+        android:layout_marginRight="@dimen/activity_horizontal_margin"
         android:layout_below="@id/activity_song_stats"
+        android:layout_above="@id/fragment_mini_player"
         android:id="@+id/activity_song_description" />
+
 </RelativeLayout>

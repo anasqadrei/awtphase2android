@@ -3,25 +3,26 @@ package com.awtarika.android.app;
 import android.content.Intent;
 import android.graphics.Color;
 import android.support.v4.view.MenuItemCompat;
-import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.support.v7.widget.ShareActionProvider;
 import android.util.Log;
 import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.MenuItem;
+import android.view.View;
 import android.widget.TextView;
 
 import com.apradanas.simplelinkabletext.Link;
 import com.apradanas.simplelinkabletext.LinkableTextView;
 import com.awtarika.android.app.model.Song;
+import com.awtarika.android.app.util.AudioPlayerSingleton;
 import com.bumptech.glide.Glide;
 
 import java.util.regex.Pattern;
 
 import de.hdodenhof.circleimageview.CircleImageView;
 
-public class SongActivity extends AppCompatActivity {
+public class SongActivity extends BaseActivity {
 
     private Song song;
 
@@ -59,9 +60,8 @@ public class SongActivity extends AppCompatActivity {
                     .setClickListener(new Link.OnClickListener() {
                         @Override
                         public void onClick(String hashtagText) {
-                            // TODO: 19/11/16 Find the right context 
                             // pass selected hashtag to the next view
-                            Intent hashtagIntent = new Intent(getApplicationContext(), HashtagActivity.class);
+                            Intent hashtagIntent = new Intent(SongActivity.this, HashtagActivity.class);
                             hashtagIntent.putExtra("hashtag", hashtagText);
                             startActivity(hashtagIntent);
                         }
@@ -99,5 +99,14 @@ public class SongActivity extends AppCompatActivity {
         }
 
         return true;
+    }
+
+    public void play(View view) {
+        // set audio player & mini player songs
+        AudioPlayerSingleton.getInstance().mSong = song;
+        mMiniPlayerFragment.setSong(AudioPlayerSingleton.getInstance().mSong);
+
+        // show mini player
+        showPlaybackControls();
     }
 }

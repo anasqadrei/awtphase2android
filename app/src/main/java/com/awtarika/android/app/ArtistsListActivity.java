@@ -3,7 +3,6 @@ package com.awtarika.android.app;
 import android.content.Context;
 import android.content.Intent;
 import android.net.Uri;
-import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.LayoutInflater;
@@ -31,7 +30,7 @@ import java.util.ArrayList;
 
 import de.hdodenhof.circleimageview.CircleImageView;
 
-public class ArtistsListActivity extends AppCompatActivity {
+public class ArtistsListActivity extends BaseActivity {
 
     // state variables  that has to be saved
     private ArrayList<Artist> artistsList = new ArrayList<Artist>();
@@ -113,7 +112,7 @@ public class ArtistsListActivity extends AppCompatActivity {
         // build request url
         Uri.Builder builder = new Uri.Builder();
         builder.scheme(Constants.URLs.PROTOCOL)
-                .authority(Constants.URLs.HOST)
+                .encodedAuthority(Constants.URLs.HOST)
                 .appendPath("artists-list")
                 .appendQueryParameter("sort", sort)
                 .appendQueryParameter("page", String.valueOf(page))

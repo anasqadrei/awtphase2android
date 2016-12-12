@@ -4,7 +4,6 @@ import android.content.Context;
 import android.content.Intent;
 import android.net.Uri;
 import android.support.v4.view.MenuItemCompat;
-import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.support.v7.widget.ShareActionProvider;
 import android.util.Log;
@@ -36,7 +35,7 @@ import java.util.ArrayList;
 
 import de.hdodenhof.circleimageview.CircleImageView;
 
-public class ArtistActivity extends AppCompatActivity {
+public class ArtistActivity extends BaseActivity {
 
     // state variables  that has to be saved
     private ArrayList<Song> songsList = new ArrayList<>();
@@ -165,7 +164,7 @@ public class ArtistActivity extends AppCompatActivity {
         // build request url
         Uri.Builder builder = new Uri.Builder();
         builder.scheme(Constants.URLs.PROTOCOL)
-                .authority(Constants.URLs.HOST)
+                .encodedAuthority(Constants.URLs.HOST)
                 .appendPath("song")
                 .appendPath("list")
                 .appendQueryParameter("artist", String.valueOf(artist.id))

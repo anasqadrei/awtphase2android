@@ -6,10 +6,17 @@
     android:layout_height="match_parent"
     tools:context="com.awtarika.android.app.ArtistsListActivity">
 
+    <FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+        android:id="@+id/fragment_mini_player"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_alignParentBottom="true" />
+
     <GridView
         android:id="@+id/activity_artists_list_artists_list"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
+        android:layout_above="@id/fragment_mini_player"
         android:gravity="center"
         android:columnWidth="112dp"
         android:numColumns="auto_fit"
