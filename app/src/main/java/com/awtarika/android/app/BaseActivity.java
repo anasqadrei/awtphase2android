@@ -1,10 +1,16 @@
 package com.awtarika.android.app;
 
+import android.content.ComponentName;
+import android.content.Context;
+import android.content.Intent;
+import android.content.ServiceConnection;
 import android.os.Bundle;
+import android.os.IBinder;
 import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
 
-import com.awtarika.android.app.util.AudioPlayerSingleton;
+import com.awtarika.android.app.util.MusicService;
+import com.awtarika.android.app.util.MusicServiceManager;
 
 /**
  * Created by anasqadrei on 23/11/16.
@@ -13,6 +19,10 @@ import com.awtarika.android.app.util.AudioPlayerSingleton;
 public class BaseActivity extends AppCompatActivity implements MiniPlayerFragment.OnFragmentInteractionListener {
 
     protected MiniPlayerFragment mMiniPlayerFragment;
+
+    protected Intent mPlayerIntent;
+    protected MusicService mMusicService;
+    protected boolean mBound = false;
 
     private static final String TAG = BaseActivity.class.getSimpleName();
 
@@ -36,23 +46,97 @@ public class BaseActivity extends AppCompatActivity implements MiniPlayerFragmen
     }
 
     @Override
-    protected void onResume() {
-        super.onResume();
+    protected void onStart() {
+        super.onStart();
 
-        // show mini player or not based on song existence
-        if (AudioPlayerSingleton.getInstance().mSong == null) {
-            hidePlaybackControls();
-        } else {
-            showPlaybackControls();
+        if (MusicServiceManager.shouldBindMusicService) {
+            bindMusicService();
         }
     }
 
-    protected void hidePlaybackControls() {
-        getFragmentManager()
-                .beginTransaction()
-                .hide(mMiniPlayerFragment)
-                .commit();
+    @Override
+    protected void onResume() {
+        super.onResume();
+
+        // show mini player or not based on music service
+        if (MusicServiceManager.musicServiceStarted) {
+            showPlaybackControls();
+        } else {
+            hidePlaybackControls();
+        }
     }
+
+    @Override
+    protected void onStop() {
+        super.onStop();
+
+        unbindMusicService();
+    }
+
+    @Override
+    public void onFragmentInteraction() {
+        Log.v(TAG, "play pause or stop ");
+
+        // stop process
+        hidePlaybackControls();
+        MusicServiceManager.shouldBindMusicService = false;     //for next onStart() to use
+
+        // unbind form current activity and miniplayer
+        unbindMusicService();
+        mMiniPlayerFragment.unbindMusicService();
+
+        // stop the serivce
+        if (MusicServiceManager.musicServiceStarted) {
+            // set the player intent
+            if (mPlayerIntent == null) {
+                mPlayerIntent = new Intent(this, MusicService.class);
+            }
+
+            // stop
+            stopService(mPlayerIntent);
+            MusicServiceManager.musicServiceStarted = false;
+            mMusicService = null;
+        }
+    }
+
+    protected void bindMusicService() {
+        // set the player intent
+        if (mPlayerIntent == null) {
+            mPlayerIntent = new Intent(this, MusicService.class);
+        }
+
+        // start the service if it wasn't started
+        if (!MusicServiceManager.musicServiceStarted) {
+            MusicServiceManager.musicServiceStarted = true;
+            startService(mPlayerIntent);
+        }
+
+        bindService(mPlayerIntent, mConnection, Context.BIND_AUTO_CREATE);
+    }
+
+    protected void unbindMusicService() {
+        if (mBound) {
+            unbindService(mConnection);
+            mBound = false;
+        }
+    }
+
+    // defines callbacks for service binding, passed to bindService()
+    private ServiceConnection mConnection = new ServiceConnection() {
+
+        @Override
+        public void onServiceConnected(ComponentName className, IBinder service) {
+            // bound to MusicService, cast the IBinder and get MusicService instance
+            MusicService.MusicBinder binder = (MusicService.MusicBinder) service;
+            mMusicService = binder.getService();
+            mBound = true;
+        }
+
+        @Override
+        public void onServiceDisconnected(ComponentName arg0) {
+            mBound = false;
+        }
+    };
 
     protected void showPlaybackControls() {
         getFragmentManager()
@@ -61,10 +145,10 @@ public class BaseActivity extends AppCompatActivity implements MiniPlayerFragmen
                 .commit();
     }
 
-    @Override
-    public void onFragmentInteraction() {
-        Log.v(TAG, "play pause or stop ");
-        hidePlaybackControls();
-        AudioPlayerSingleton.getInstance().mSong = null;
+    protected void hidePlaybackControls() {
+        getFragmentManager()
+                .beginTransaction()
+                .hide(mMiniPlayerFragment)
+                .commit();
     }
 }

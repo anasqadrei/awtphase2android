@@ -16,6 +16,7 @@ public class Song implements Parcelable {
     public int artistID;
     public String artistName;
     public String url;
+    public String playbackTempURL;
     public String description;
     public String imageURL;
     public String durationDesc;
@@ -59,6 +60,7 @@ public class Song implements Parcelable {
         dest.writeInt(artistID);
         dest.writeString(artistName);
         dest.writeString(url);
+        dest.writeString(playbackTempURL);
         dest.writeString(description);
         dest.writeString(imageURL);
         dest.writeString(durationDesc);
@@ -73,6 +75,7 @@ public class Song implements Parcelable {
         artistID = src.readInt();
         artistName = src.readString();
         url = src.readString();
+        playbackTempURL = src.readString();
         description = src.readString();
         imageURL = src.readString();
         durationDesc = src.readString();

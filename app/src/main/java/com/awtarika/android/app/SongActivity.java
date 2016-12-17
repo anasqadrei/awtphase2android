@@ -2,6 +2,7 @@ package com.awtarika.android.app;
 
 import android.content.Intent;
 import android.graphics.Color;
+import android.net.Uri;
 import android.support.v4.view.MenuItemCompat;
 import android.os.Bundle;
 import android.support.v7.widget.ShareActionProvider;
@@ -12,11 +13,19 @@ import android.view.MenuItem;
 import android.view.View;
 import android.widget.TextView;
 
+import com.android.volley.Request;
+import com.android.volley.Response;
+import com.android.volley.VolleyError;
 import com.apradanas.simplelinkabletext.Link;
 import com.apradanas.simplelinkabletext.LinkableTextView;
 import com.awtarika.android.app.model.Song;
-import com.awtarika.android.app.util.AudioPlayerSingleton;
+import com.awtarika.android.app.util.AwtarikaJsonObjectRequest;
+import com.awtarika.android.app.util.Constants;
+import com.awtarika.android.app.util.MusicServiceManager;
+import com.awtarika.android.app.util.NetworkingSingleton;
 import com.bumptech.glide.Glide;
+
+import org.json.JSONObject;
 
 import java.util.regex.Pattern;
 
@@ -101,12 +110,55 @@ public class SongActivity extends BaseActivity {
         return true;
     }
 
-    public void play(View view) {
-        // set audio player & mini player songs
-        AudioPlayerSingleton.getInstance().mSong = song;
-        mMiniPlayerFragment.setSong(AudioPlayerSingleton.getInstance().mSong);
+    @Override
+    protected void onStop() {
+        super.onStop();
 
-        // show mini player
-        showPlaybackControls();
+        // cancel network activities
+        NetworkingSingleton.getInstance(this).getRequestQueue().cancelAll(TAG);
+    }
+
+    public void play(View view) {
+
+        // build request url
+        Uri.Builder builder = new Uri.Builder();
+        builder.scheme(Constants.URLs.PROTOCOL)
+                .encodedAuthority(Constants.URLs.HOST)
+                .appendPath("song")
+                .appendPath("play")
+                .appendQueryParameter("songId", String.valueOf(song.id))
+                .build();
+        String url = builder.toString();
+
+        // define callback
+        AwtarikaJsonObjectRequest jsObjRequest = new AwtarikaJsonObjectRequest(Request.Method.GET, url, null,
+                new Response.Listener<JSONObject>() {
+
+                    @Override
+                    public void onResponse(JSONObject response) {
+
+                        // parse song url
+                        String url = response.optString("url");
+
+                        // start play process
+                        song.playbackTempURL = url;
+                        mMiniPlayerFragment.startPlaying(song);
+                        showPlaybackControls();
+                        MusicServiceManager.shouldBindMusicService = true;      //for next onStart() to use
+
+
+                    }
+                }, new Response.ErrorListener() {
+
+            @Override
+            public void onErrorResponse(VolleyError error) {
+                Log.v(TAG, "JSON didn't work!");
+                error.printStackTrace();
+            }
+        });
+        jsObjRequest.setTag(TAG);
+
+        // call the request url
+        NetworkingSingleton.getInstance(this).addToRequestQueue(jsObjRequest);
     }
 }
