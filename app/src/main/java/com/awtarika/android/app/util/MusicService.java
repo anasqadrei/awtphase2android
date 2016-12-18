@@ -1,5 +1,6 @@
 package com.awtarika.android.app.util;
 
+import android.app.Fragment;
 import android.app.Service;
 import android.content.Intent;
 import android.media.AudioManager;
@@ -18,9 +19,12 @@ public class MusicService
         implements MediaPlayer.OnPreparedListener, MediaPlayer.OnCompletionListener, MediaPlayer.OnErrorListener
 {
     private MediaPlayer mAudioPlayer;
+    private State mPlayerState;
     public Song mSong = null;
 
     private final IBinder mBinder = new MusicBinder();
+
+    private OnServiceInteractionListener mListener;
 
     private static final String TAG = MusicService.class.getSimpleName();
 
@@ -35,6 +39,7 @@ public class MusicService
         mAudioPlayer.setOnPreparedListener(this);
         mAudioPlayer.setOnCompletionListener(this);
         mAudioPlayer.setOnErrorListener(this);
+        mPlayerState = State.IDLE;
 
 //        // what about 3g 4g lte and other internet
 //        WifiManager.WifiLock wifiLock = ((WifiManager) getSystemService(Context.WIFI_SERVICE))
@@ -54,6 +59,7 @@ public class MusicService
         if (mAudioPlayer != null) {
             mAudioPlayer.release();
             mAudioPlayer = null;
+            mPlayerState = State.END;
         }
 
         Log.v(TAG," music serivce onDestroy");
@@ -67,28 +73,56 @@ public class MusicService
 
     @Override
     public void onPrepared(MediaPlayer mediaPlayer) {
-        Log.v(TAG, "playing soon");
+        // start playing
         mAudioPlayer.start();
+
+        // change state
+        mPlayerState = State.STARTED;
+
+        // notify listeners
+        if (mListener != null) {
+            mListener.onAudioPlay();
+        }
     }
 
     @Override
     public void onCompletion(MediaPlayer mediaPlayer) {
-        mSong = null;
-        Log.v(TAG, "completed");
+        // change state
+        mPlayerState = State.COMPLETED;
+
+        // notify listeners
+        if (mListener != null) {
+            mListener.onAudioCompleted();
+        }
     }
 
     @Override
-    public boolean onError(MediaPlayer mediaPlayer, int i, int i1) {
-        Log.v(TAG, "error playing");
-        mSong = null;
-        return false;
+    public boolean onError(MediaPlayer mediaPlayer, int type, int extra) {
+        // Log the error
+        Log.v(TAG, "MediaPlayer Error type: " + String.valueOf(type) + " extra: " + String.valueOf(extra));
+
+        // change state
+        mPlayerState = State.ERROR;
+
+        // notify listeners
+        if (mListener != null) {
+            mListener.onAudioError();
+        }
+
+        // error handled(logged)
+        return true;
     }
 
-    public void playSong() {
+    public void startPlayingSong() {
         try {
+            // set the audio player to play the current song
             mAudioPlayer.reset();
             mAudioPlayer.setDataSource(mSong.playbackTempURL);
             mAudioPlayer.prepareAsync();
+
+            // change state
+            mPlayerState = State.PREPARING;
+
         } catch (IllegalArgumentException iae) {
             Log.v(TAG, "IllegalArgumentException on setDataSource");
             iae.printStackTrace();
@@ -98,11 +132,71 @@ public class MusicService
         }
     }
 
+    public void pauseSong() {
+        // pause player
+        mAudioPlayer.pause();
+
+        // change state
+        mPlayerState = State.PAUSED;
+
+        // notify listeners
+        if (mListener != null) {
+            mListener.onAudioPause();
+        }
+    }
+
+    public void resumeSong() {
+        // resume playing
+        mAudioPlayer.start();
+
+        // change state
+        mPlayerState = State.STARTED;
+
+        // notify listeners
+        if (mListener != null) {
+            mListener.onAudioPlay();
+        }
+    }
+
+    public State getState() {
+        return mPlayerState;
+    }
+
+    public void registerClient(Fragment fragment) {
+        // set listener
+        if (fragment instanceof OnServiceInteractionListener) {
+            mListener = (OnServiceInteractionListener) fragment;
+        } else {
+            throw new RuntimeException(fragment.toString() + " must implement OnServiceInteractionListener");
+        }
+    }
+
+    public void unregisterClient() {
+        mListener = null;
+    }
+
     // class used for the client Binder. runs in the same process as its clients
     public class MusicBinder extends Binder {
         public MusicService getService() {
             // return this instance of LocalService so clients can call public methods
             return MusicService.this;
         }
+    }
+
+    public interface OnServiceInteractionListener {
+        void onAudioPlay();
+        void onAudioPause();
+        void onAudioCompleted();
+        void onAudioError();
+    }
+
+    public enum State {
+        IDLE,
+        PREPARING,
+        STARTED,
+        PAUSED,
+        COMPLETED,
+        ERROR,
+        END
     }
 }

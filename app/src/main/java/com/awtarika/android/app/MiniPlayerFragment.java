@@ -12,6 +12,7 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ImageButton;
 import android.widget.ImageView;
+import android.widget.ProgressBar;
 import android.widget.TextView;
 
 import com.awtarika.android.app.model.Song;
@@ -19,7 +20,7 @@ import com.awtarika.android.app.util.MusicService;
 import com.awtarika.android.app.util.MusicServiceManager;
 import com.bumptech.glide.Glide;
 
-public class MiniPlayerFragment extends Fragment {
+public class MiniPlayerFragment extends Fragment implements MusicService.OnServiceInteractionListener {
 
     private Song mSong = null;
     private Intent mPlayerIntent;
@@ -27,10 +28,11 @@ public class MiniPlayerFragment extends Fragment {
     private boolean mBound = false;
     private boolean mPlayWhenReady = false;
 
-    private ImageButton mPlayPause;
     private TextView mSongTitle;
     private TextView mArtistName;
     private ImageView mSongImage;
+    private ImageButton mPlayPause;
+    private ProgressBar mProgress;
 
     private OnFragmentInteractionListener mListener;
 
@@ -45,18 +47,20 @@ public class MiniPlayerFragment extends Fragment {
         // Inflate the layout for this fragment
         View rootView = inflater.inflate(R.layout.fragment_mini_player, container, false);
 
-        mPlayPause = (ImageButton) rootView.findViewById(R.id.play_pause);
+        mSongTitle = (TextView) rootView.findViewById(R.id.fragment_mini_player_song_title);
+        mArtistName = (TextView) rootView.findViewById(R.id.fragment_mini_player_artist_name);
+        mSongImage = (ImageView) rootView.findViewById(R.id.fragment_mini_player_song_image);
+
+        mPlayPause = (ImageButton) rootView.findViewById(R.id.fragment_mini_player_play_pause_button);
         mPlayPause.setEnabled(true);
         mPlayPause.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                onButtonPressed();
+                onPlayPauseButtonPressed();
             }
         });
 
-        mSongTitle = (TextView) rootView.findViewById(R.id.title);
-        mArtistName = (TextView) rootView.findViewById(R.id.artist);
-        mSongImage = (ImageView) rootView.findViewById(R.id.album_art);
+        mProgress = (ProgressBar) rootView.findViewById(R.id.fragment_mini_player_progress_circle);
 
         return rootView;
     }
@@ -96,8 +100,38 @@ public class MiniPlayerFragment extends Fragment {
         mListener = null;
     }
 
+    @Override
+    public void onAudioPlay() {
+        // show the right image on the button
+        mPlayPause.setImageResource(android.R.drawable.ic_media_pause);
+        showButtonHideProgress();
+    }
+
+    @Override
+    public void onAudioPause() {
+        // show the right image on the button
+        mPlayPause.setImageResource(android.R.drawable.ic_media_play);
+        showButtonHideProgress();
+    }
+
+    @Override
+    public void onAudioCompleted() {
+        // hide player if song is finished
+        if (mListener != null) {
+            mListener.onFragmentReadyToBeKilled();
+        }
+    }
+
+    @Override
+    public void onAudioError() {
+        // show the right image on the button
+        mPlayPause.setImageResource(android.R.drawable.ic_menu_close_clear_cancel);
+        showButtonHideProgress();
+    }
+
     public void setSong(Song song) {
         if (song != null) {
+            // set metadata
             mSongTitle.setText(song.title);
             mArtistName.setText(song.artistName);
 
@@ -123,13 +157,28 @@ public class MiniPlayerFragment extends Fragment {
         mSong = song;
         setSong(song);
 
+        // loading...
+        hideButtonShowProgress();
+
         // if not bound then start service and bind then play when bound, if already bound then play
         if (!mBound) {
             bindMusicService();
             mPlayWhenReady = true;
         } else {
             mMusicService.mSong = mSong;
-            mMusicService.playSong();
+            mMusicService.startPlayingSong();
+        }
+    }
+
+    public void pausePlaying() {
+        if (mBound) {
+            mMusicService.pauseSong();
+        }
+    }
+
+    public void resumePlaying() {
+        if (mBound) {
+            mMusicService.resumeSong();
         }
     }
 
@@ -168,42 +217,74 @@ public class MiniPlayerFragment extends Fragment {
             mMusicService = binder.getService();
             mBound = true;
 
+            // listen to service
+            mMusicService.registerClient(MiniPlayerFragment.this);
+
             // if it's a new song then play when bound
             if (mPlayWhenReady) {
                 mPlayWhenReady = false;
                 mMusicService.mSong = mSong;
-                mMusicService.playSong();
+                mMusicService.startPlayingSong();
             }
 
             // set service song
             setSong(mMusicService.mSong);
+
+            // update the playpause button when bound
+            switch (mMusicService.getState()) {
+                case STARTED:
+                    mPlayPause.setImageResource(android.R.drawable.ic_media_pause);
+                    showButtonHideProgress();
+                    break;
+                case PAUSED:
+                    mPlayPause.setImageResource(android.R.drawable.ic_media_play);
+                    showButtonHideProgress();
+                    break;
+                case ERROR:
+                    mPlayPause.setImageResource(android.R.drawable.ic_menu_close_clear_cancel);
+                    showButtonHideProgress();
+                    break;
+                default:
+                    hideButtonShowProgress();
+            }
         }
 
         @Override
         public void onServiceDisconnected(ComponentName arg0) {
             mBound = false;
+            mMusicService.unregisterClient();
         }
     };
 
-    // TODO: Rename method, update argument and hook method into UI event
-    public void onButtonPressed() {
-        if (mListener != null) {
-            mListener.onFragmentInteraction();
+    public void onPlayPauseButtonPressed() {
+        if (mBound) {
+            switch (mMusicService.getState()) {
+                case STARTED:
+                    pausePlaying();
+                    break;
+                case PAUSED:
+                    resumePlaying();
+                    break;
+                case ERROR:
+                    if (mListener != null) {
+                        mListener.onFragmentReadyToBeKilled();
+                    }
+                    break;
+            }
         }
     }
 
-    /**
-     * This interface must be implemented by activities that contain this
-     * fragment to allow an interaction in this fragment to be communicated
-     * to the activity and potentially other fragments contained in that
-     * activity.
-     * <p>
-     * See the Android Training lesson <a href=
-     * "http://developer.android.com/training/basics/fragments/communicating.html"
-     * >Communicating with Other Fragments</a> for more information.
-     */
+    private void showButtonHideProgress() {
+        mPlayPause.setVisibility(View.VISIBLE);
+        mProgress.setVisibility(View.GONE);
+    }
+
+    private void hideButtonShowProgress() {
+        mPlayPause.setVisibility(View.GONE);
+        mProgress.setVisibility(View.VISIBLE);
+    }
+
     public interface OnFragmentInteractionListener {
-        // TODO: Update argument type and name
-        void onFragmentInteraction();
+        void onFragmentReadyToBeKilled();
     }
 }

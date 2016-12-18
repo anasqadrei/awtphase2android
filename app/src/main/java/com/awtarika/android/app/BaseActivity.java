@@ -74,10 +74,8 @@ public class BaseActivity extends AppCompatActivity implements MiniPlayerFragmen
     }
 
     @Override
-    public void onFragmentInteraction() {
-        Log.v(TAG, "play pause or stop ");
-
-        // stop process
+    public void onFragmentReadyToBeKilled() {
+        // beginning of kill process. hide and don't bind
         hidePlaybackControls();
         MusicServiceManager.shouldBindMusicService = false;     //for next onStart() to use
 
@@ -85,7 +83,7 @@ public class BaseActivity extends AppCompatActivity implements MiniPlayerFragmen
         unbindMusicService();
         mMiniPlayerFragment.unbindMusicService();
 
-        // stop the serivce
+        // stop the service
         if (MusicServiceManager.musicServiceStarted) {
             // set the player intent
             if (mPlayerIntent == null) {

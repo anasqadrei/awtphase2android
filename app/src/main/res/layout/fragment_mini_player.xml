@@ -1,5 +1,4 @@
 <FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
-    xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
@@ -11,38 +10,52 @@
         android:layout_height="wrap_content"
         android:padding="8dp">
         <ImageView
-            android:id="@+id/album_art"
+            android:id="@+id/fragment_mini_player_song_image"
             android:layout_width="64dp"
             android:layout_height="64dp"
             android:scaleType="centerCrop"
             android:layout_alignParentLeft="true"
             android:layout_alignParentStart="true" />
 
-        <ImageButton
-            android:id="@+id/play_pause"
-            android:layout_centerVertical="true"
+        <LinearLayout
+            android:id="@+id/fragment_mini_player_button_area"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:padding="8dp"
+            android:orientation="horizontal"
+            android:layout_centerVertical="true"
             android:layout_alignParentRight="true"
-            android:layout_alignParentEnd="true"
-            android:background="?selectableItemBackgroundBorderless"
-            app:srcCompat="@android:drawable/ic_media_play" />
+            android:layout_alignParentEnd="true">
+
+            <ImageButton
+                android:id="@+id/fragment_mini_player_play_pause_button"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_gravity="center"
+                android:padding="8dp"
+                android:background="?selectableItemBackgroundBorderless" />
+
+            <ProgressBar
+                android:id="@+id/fragment_mini_player_progress_circle"
+                style="?android:attr/progressBarStyle"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_gravity="center" />
+        </LinearLayout>
 
         <LinearLayout
-            android:id="@+id/content"
-            android:layout_width="wrap_content"
+            android:id="@+id/fragment_mini_player_metadate"
+            android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginLeft="8dp"
             android:layout_marginStart="8dp"
             android:orientation="vertical"
-            android:layout_toRightOf="@id/album_art"
-            android:layout_toEndOf="@id/album_art"
-            android:layout_toLeftOf="@id/play_pause"
-            android:layout_toStartOf="@+id/play_pause"
+            android:layout_toRightOf="@id/fragment_mini_player_song_image"
+            android:layout_toEndOf="@id/fragment_mini_player_song_image"
+            android:layout_toLeftOf="@id/fragment_mini_player_button_area"
+            android:layout_toStartOf="@id/fragment_mini_player_button_area"
             android:layout_centerVertical="true">
             <TextView
-                android:id="@+id/title"
+                android:id="@+id/fragment_mini_player_song_title"
                 android:ellipsize="end"
                 android:maxLines="1"
                 android:layout_width="match_parent"
@@ -51,7 +64,7 @@
                 android:textAppearance="?android:attr/textAppearanceMedium"
                 android:textColor="?android:attr/textColorPrimary"/>
             <TextView
-                android:id="@+id/artist"
+                android:id="@+id/fragment_mini_player_artist_name"
                 android:ellipsize="end"
                 android:maxLines="1"
                 android:layout_width="match_parent"

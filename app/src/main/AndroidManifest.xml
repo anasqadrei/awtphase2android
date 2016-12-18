@@ -22,8 +22,7 @@
         <activity android:name=".SongActivity" />
         <activity android:name=".HashtagActivity" />
 
-        <service
-            android:name=".util.MusicService"></service>
+        <service android:name=".util.MusicService"></service>
     </application>
 
 </manifest>
