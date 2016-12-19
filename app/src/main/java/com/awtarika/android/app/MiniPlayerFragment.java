@@ -6,7 +6,9 @@ import android.content.Intent;
 import android.content.ServiceConnection;
 import android.os.Bundle;
 import android.app.Fragment;
+import android.os.Handler;
 import android.os.IBinder;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -32,7 +34,11 @@ public class MiniPlayerFragment extends Fragment implements MusicService.OnServi
     private TextView mArtistName;
     private ImageView mSongImage;
     private ImageButton mPlayPause;
-    private ProgressBar mProgress;
+    private ProgressBar mSpinnerProgress;
+    private ProgressBar mPlaybackProgress;
+
+    private Handler mHandler = new Handler();
+    private static int PLAYBACK_PROGRESS_TIMER = 200;
 
     private OnFragmentInteractionListener mListener;
 
@@ -60,7 +66,8 @@ public class MiniPlayerFragment extends Fragment implements MusicService.OnServi
             }
         });
 
-        mProgress = (ProgressBar) rootView.findViewById(R.id.fragment_mini_player_progress_circle);
+        mSpinnerProgress = (ProgressBar) rootView.findViewById(R.id.fragment_mini_player_spinner_progress);
+        mPlaybackProgress = (ProgressBar) rootView.findViewById(R.id.fragment_mini_player_playback_progress);
 
         return rootView;
     }
@@ -80,6 +87,8 @@ public class MiniPlayerFragment extends Fragment implements MusicService.OnServi
         super.onStop();
 
         unbindMusicService();
+
+        mHandler.removeCallbacks(mPlaybackProgressRunnable);
     }
 
     @Override
@@ -105,6 +114,10 @@ public class MiniPlayerFragment extends Fragment implements MusicService.OnServi
         // show the right image on the button
         mPlayPause.setImageResource(android.R.drawable.ic_media_pause);
         showButtonHideProgress();
+
+        // set playback progress
+        mPlaybackProgress.setMax(mMusicService.getDuration());
+        mHandler.postDelayed(mPlaybackProgressRunnable, PLAYBACK_PROGRESS_TIMER);
     }
 
     @Override
@@ -112,10 +125,20 @@ public class MiniPlayerFragment extends Fragment implements MusicService.OnServi
         // show the right image on the button
         mPlayPause.setImageResource(android.R.drawable.ic_media_play);
         showButtonHideProgress();
+
+        // set playback progress
+        mPlaybackProgress.setMax(mMusicService.getDuration());
+        mPlaybackProgress.setProgress(mMusicService.getCurrentPosition());
+
+        // stop playback progress from updating
+        mHandler.removeCallbacks(mPlaybackProgressRunnable);
     }
 
     @Override
     public void onAudioCompleted() {
+        // stop playback progress from updating
+        mHandler.removeCallbacks(mPlaybackProgressRunnable);
+
         // hide player if song is finished
         if (mListener != null) {
             mListener.onFragmentReadyToBeKilled();
@@ -127,6 +150,9 @@ public class MiniPlayerFragment extends Fragment implements MusicService.OnServi
         // show the right image on the button
         mPlayPause.setImageResource(android.R.drawable.ic_menu_close_clear_cancel);
         showButtonHideProgress();
+
+        // stop playback progress from updating
+        mHandler.removeCallbacks(mPlaybackProgressRunnable);
     }
 
     public void setSong(Song song) {
@@ -233,16 +259,13 @@ public class MiniPlayerFragment extends Fragment implements MusicService.OnServi
             // update the playpause button when bound
             switch (mMusicService.getState()) {
                 case STARTED:
-                    mPlayPause.setImageResource(android.R.drawable.ic_media_pause);
-                    showButtonHideProgress();
+                    onAudioPlay();
                     break;
                 case PAUSED:
-                    mPlayPause.setImageResource(android.R.drawable.ic_media_play);
-                    showButtonHideProgress();
+                    onAudioPause();
                     break;
                 case ERROR:
-                    mPlayPause.setImageResource(android.R.drawable.ic_menu_close_clear_cancel);
-                    showButtonHideProgress();
+                    onAudioError();
                     break;
                 default:
                     hideButtonShowProgress();
@@ -253,6 +276,18 @@ public class MiniPlayerFragment extends Fragment implements MusicService.OnServi
         public void onServiceDisconnected(ComponentName arg0) {
             mBound = false;
             mMusicService.unregisterClient();
+        }
+    };
+
+    private Runnable mPlaybackProgressRunnable = new Runnable() {
+        @Override
+        public void run() {
+
+            if (mBound) {
+                mPlaybackProgress.setProgress(mMusicService.getCurrentPosition());
+            }
+
+            mHandler.postDelayed(this, PLAYBACK_PROGRESS_TIMER);
         }
     };
 
@@ -276,12 +311,12 @@ public class MiniPlayerFragment extends Fragment implements MusicService.OnServi
 
     private void showButtonHideProgress() {
         mPlayPause.setVisibility(View.VISIBLE);
-        mProgress.setVisibility(View.GONE);
+        mSpinnerProgress.setVisibility(View.GONE);
     }
 
     private void hideButtonShowProgress() {
         mPlayPause.setVisibility(View.GONE);
-        mProgress.setVisibility(View.VISIBLE);
+        mSpinnerProgress.setVisibility(View.VISIBLE);
     }
 
     public interface OnFragmentInteractionListener {

@@ -162,6 +162,14 @@ public class MusicService
         return mPlayerState;
     }
 
+    public int getCurrentPosition() {
+        return mAudioPlayer.getCurrentPosition();
+    }
+
+    public int getDuration() {
+        return mAudioPlayer.getDuration();
+    }
+
     public void registerClient(Fragment fragment) {
         // set listener
         if (fragment instanceof OnServiceInteractionListener) {
