@@ -4,6 +4,7 @@ import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
 import android.content.ServiceConnection;
+import android.media.AudioManager;
 import android.os.Bundle;
 import android.os.IBinder;
 import android.support.v7.app.AppCompatActivity;
@@ -29,6 +30,9 @@ public class BaseActivity extends AppCompatActivity implements MiniPlayerFragmen
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+
+        // direct volume key presses to the music audio stream
+        setVolumeControlStream(AudioManager.STREAM_MUSIC);
 
         // get the mini player
         mMiniPlayerFragment = (MiniPlayerFragment) getFragmentManager().findFragmentById(R.id.fragment_mini_player);
