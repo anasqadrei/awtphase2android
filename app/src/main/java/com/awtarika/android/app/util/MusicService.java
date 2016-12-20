@@ -1,15 +1,21 @@
 package com.awtarika.android.app.util;
 
 import android.app.Fragment;
+import android.app.Notification;
+import android.app.PendingIntent;
 import android.app.Service;
 import android.content.Intent;
+import android.graphics.BitmapFactory;
 import android.media.AudioManager;
 import android.media.MediaPlayer;
 import android.os.Binder;
 import android.os.IBinder;
 import android.os.PowerManager;
+import android.support.v7.app.NotificationCompat;
 import android.util.Log;
 
+import com.awtarika.android.app.R;
+import com.awtarika.android.app.SongActivity;
 import com.awtarika.android.app.model.Song;
 
 import java.io.IOException;
@@ -26,6 +32,7 @@ public class MusicService
 
     private OnServiceInteractionListener mListener;
 
+    private static final int NOTIFICATION_ID = 1;
     private static final String TAG = MusicService.class.getSimpleName();
 
     @Override
@@ -62,6 +69,9 @@ public class MusicService
             mPlayerState = State.END;
         }
 
+        // stop notification in case it wasn't stopped
+        stopForeground(true);
+
         Log.v(TAG," music serivce onDestroy");
         super.onDestroy();
     }
@@ -76,6 +86,25 @@ public class MusicService
         // start playing
         mAudioPlayer.start();
 
+        // set notification intent
+        Intent notificationIntent = new Intent(this, SongActivity.class);
+        notificationIntent.putExtra(Song.class.getSimpleName(), mSong);
+        PendingIntent pendingIntent = PendingIntent.getActivity(this, 0, notificationIntent, PendingIntent.FLAG_UPDATE_CURRENT);
+
+        // build notification and set its properties
+        Notification notification = new NotificationCompat.Builder(this)
+                .setContentTitle(mSong.title)
+                .setContentText(mSong.artistName)
+                .setSmallIcon(android.R.drawable.ic_media_play)
+                .setLargeIcon(BitmapFactory.decodeResource(this.getResources(), R.mipmap.ic_launcher))
+                .setContentIntent(pendingIntent)
+                .setOngoing(true)
+                .setShowWhen(false)
+                .build();
+
+        // start foreground notification
+        startForeground(NOTIFICATION_ID, notification);
+
         // change state
         mPlayerState = State.STARTED;
 
@@ -89,6 +118,9 @@ public class MusicService
     public void onCompletion(MediaPlayer mediaPlayer) {
         // change state
         mPlayerState = State.COMPLETED;
+
+        // stop notification
+        stopForeground(true);
 
         // notify listeners
         if (mListener != null) {
@@ -115,6 +147,9 @@ public class MusicService
 
     public void startPlayingSong() {
         try {
+            // reset notification
+            stopForeground(true);
+
             // set the audio player to play the current song
             mAudioPlayer.reset();
             mAudioPlayer.setDataSource(mSong.playbackTempURL);
