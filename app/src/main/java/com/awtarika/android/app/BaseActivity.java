@@ -20,6 +20,7 @@ import com.awtarika.android.app.util.MusicServiceManager;
 public class BaseActivity extends AppCompatActivity implements MiniPlayerFragment.OnFragmentInteractionListener {
 
     protected MiniPlayerFragment mMiniPlayerFragment;
+    protected boolean allowManageFragment;
 
     protected Intent mPlayerIntent;
     protected MusicService mMusicService;
@@ -56,6 +57,9 @@ public class BaseActivity extends AppCompatActivity implements MiniPlayerFragmen
         if (MusicServiceManager.shouldBindMusicService) {
             bindMusicService();
         }
+
+        // allow show and hide fragment. mainly to solve the "can't hide after onSavedState is called" error
+        allowManageFragment = true;
     }
 
     @Override
@@ -75,6 +79,9 @@ public class BaseActivity extends AppCompatActivity implements MiniPlayerFragmen
         super.onStop();
 
         unbindMusicService();
+
+        // allow show and hide fragment. mainly to solve the "can't hide after onSavedState is called" error
+        allowManageFragment = false;
     }
 
     @Override
@@ -141,16 +148,20 @@ public class BaseActivity extends AppCompatActivity implements MiniPlayerFragmen
     };
 
     protected void showPlaybackControls() {
-        getFragmentManager()
-                .beginTransaction()
-                .show(mMiniPlayerFragment)
-                .commit();
+        if (allowManageFragment) {
+            getFragmentManager()
+                    .beginTransaction()
+                    .show(mMiniPlayerFragment)
+                    .commit();
+        }
     }
 
     protected void hidePlaybackControls() {
-        getFragmentManager()
-                .beginTransaction()
-                .hide(mMiniPlayerFragment)
-                .commit();
+        if (allowManageFragment) {
+            getFragmentManager()
+                    .beginTransaction()
+                    .hide(mMiniPlayerFragment)
+                    .commit();
+        }
     }
 }
