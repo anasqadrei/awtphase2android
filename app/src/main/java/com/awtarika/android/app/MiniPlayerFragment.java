@@ -8,6 +8,7 @@ import android.os.Bundle;
 import android.app.Fragment;
 import android.os.Handler;
 import android.os.IBinder;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -316,6 +317,9 @@ public class MiniPlayerFragment extends Fragment implements MusicService.OnServi
     private void hideButtonShowProgress() {
         mPlayPause.setVisibility(View.GONE);
         mSpinnerProgress.setVisibility(View.VISIBLE);
+
+        // in case spinner in on, reset playback because playback is saved when back is pressed
+        mPlaybackProgress.setProgress(0);
     }
 
     public interface OnFragmentInteractionListener {

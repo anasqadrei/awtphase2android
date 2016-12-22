@@ -2,16 +2,20 @@ package com.awtarika.android.app.util;
 
 import android.app.Fragment;
 import android.app.Notification;
+import android.app.NotificationManager;
 import android.app.PendingIntent;
 import android.app.Service;
 import android.content.Context;
 import android.content.Intent;
+import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.media.AudioManager;
 import android.media.MediaPlayer;
 import android.os.Binder;
 import android.os.IBinder;
 import android.os.PowerManager;
+import android.support.v4.content.ContextCompat;
+import android.support.v4.media.session.MediaButtonReceiver;
 import android.support.v4.media.session.MediaSessionCompat;
 import android.support.v4.media.session.PlaybackStateCompat;
 import android.support.v7.app.NotificationCompat;
@@ -20,6 +24,9 @@ import android.util.Log;
 import com.awtarika.android.app.R;
 import com.awtarika.android.app.SongActivity;
 import com.awtarika.android.app.model.Song;
+import com.bumptech.glide.Glide;
+import com.bumptech.glide.request.animation.GlideAnimation;
+import com.bumptech.glide.request.target.SimpleTarget;
 
 import java.io.IOException;
 
@@ -30,6 +37,7 @@ public class MusicService
     private MediaPlayer mAudioPlayer;
     private State mPlayerState;
     public Song mSong = null;
+    public Bitmap mSongImageBitmap = null;
 
     private final IBinder mBinder = new MusicBinder();
 
@@ -64,7 +72,6 @@ public class MusicService
         mMediaSessionCompat.setFlags(MediaSessionCompat.FLAG_HANDLES_MEDIA_BUTTONS | MediaSessionCompat.FLAG_HANDLES_TRANSPORT_CONTROLS);
         mMediaSessionCompat.setCallback(mMediaSessionCallback);
 
-//        // what about 3g 4g lte and other internet
 //        WifiManager.WifiLock wifiLock = ((WifiManager) getSystemService(Context.WIFI_SERVICE))
 //                .createWifiLock(WifiManager.WIFI_MODE_FULL, "mylock");
 //
@@ -106,41 +113,17 @@ public class MusicService
     }
 
     @Override
+    public int onStartCommand(Intent intent, int flags, int startId) {
+        // handle notification buttons
+        MediaButtonReceiver.handleIntent(mMediaSessionCompat, intent);
+
+        return super.onStartCommand(intent, flags, startId);
+    }
+
+    @Override
     public void onPrepared(MediaPlayer mediaPlayer) {
-        // start playing
-        mAudioPlayer.start();
-
-        // set notification intent
-        Intent notificationIntent = new Intent(this, SongActivity.class);
-        notificationIntent.putExtra(Song.class.getSimpleName(), mSong);
-        PendingIntent pendingIntent = PendingIntent.getActivity(this, 0, notificationIntent, PendingIntent.FLAG_UPDATE_CURRENT);
-
-        // build notification and set its properties
-        Notification notification = new NotificationCompat.Builder(this)
-                .setContentTitle(mSong.title)
-                .setContentText(mSong.artistName)
-                .setSmallIcon(android.R.drawable.ic_media_play)
-                .setLargeIcon(BitmapFactory.decodeResource(this.getResources(), R.mipmap.ic_launcher))
-                .setContentIntent(pendingIntent)
-                .setOngoing(true)
-                .setShowWhen(false)
-                .build();
-
-        // start foreground notification
-        startForeground(NOTIFICATION_ID, notification);
-
-        // change state
-        PlaybackStateCompat playbackState = new PlaybackStateCompat.Builder()
-                .setActions(PlaybackStateCompat.ACTION_PAUSE)
-                .setState(PlaybackStateCompat.STATE_PLAYING, mAudioPlayer.getCurrentPosition(), 1.0f)
-                .build();
-        mMediaSessionCompat.setPlaybackState(playbackState);
-        mPlayerState = State.STARTED;
-
-        // notify listeners
-        if (mListener != null) {
-            mListener.onAudioPlay();
-        }
+        // play
+        resumeSong();
     }
 
     @Override
@@ -230,6 +213,22 @@ public class MusicService
             stopForeground(true);
 
             try {
+                // reset and set song image bitmap to be used in notification.
+                // do this early so we have time for the image to set before starting notification
+                mSongImageBitmap = null;
+                Glide.with(getApplicationContext())
+                        .load(mSong.imageURL)
+                        .asBitmap()
+                        .centerCrop()
+                        .dontAnimate()
+                        .into(new SimpleTarget<Bitmap>(600, 600) {
+                            @Override
+                            public void onResourceReady(Bitmap bitmap, GlideAnimation anim) {
+                                // set the new song image bitmap
+                                mSongImageBitmap = bitmap;
+                            }
+                        });
+
                 // set the audio player to play the current song
                 mAudioPlayer.reset();
                 mAudioPlayer.setDataSource(mSong.playbackTempURL);
@@ -265,6 +264,15 @@ public class MusicService
             audioManager.abandonAudioFocus(this);
         }
 
+        // update notification
+        Notification notification = buildInitialNotification()
+                .addAction(new NotificationCompat.Action(android.R.drawable.ic_media_play, "Play", MediaButtonReceiver.buildMediaButtonPendingIntent(this, PlaybackStateCompat.ACTION_PLAY)))
+                .build();
+        ((NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE)).notify(NOTIFICATION_ID, notification);
+
+        // stop foreground but keep notification
+        stopForeground(false);
+
         // notify listeners
         if (mListener != null) {
             mListener.onAudioPause();
@@ -285,11 +293,48 @@ public class MusicService
             mMediaSessionCompat.setPlaybackState(playbackState);
             mPlayerState = State.STARTED;
 
+            // create notification
+            Notification notification = buildInitialNotification()
+                    .addAction(new NotificationCompat.Action(android.R.drawable.ic_media_pause, "Pause", MediaButtonReceiver.buildMediaButtonPendingIntent(this, PlaybackStateCompat.ACTION_PAUSE)))
+                    .build();
+
+            // start foreground notification
+            startForeground(NOTIFICATION_ID, notification);
+
             // notify listeners
             if (mListener != null) {
                 mListener.onAudioPlay();
             }
         }
+    }
+
+    private NotificationCompat.Builder buildInitialNotification() {
+        // set notification intent
+        Intent notificationIntent = new Intent(this, SongActivity.class);
+        notificationIntent.putExtra(Song.class.getSimpleName(), mSong);
+        PendingIntent pendingIntent = PendingIntent.getActivity(this, 0, notificationIntent, PendingIntent.FLAG_UPDATE_CURRENT);
+
+        // use default image if none available or none loaded
+        if (mSongImageBitmap == null) {
+            mSongImageBitmap = BitmapFactory.decodeResource(this.getResources(), R.mipmap.ic_launcher);
+        }
+
+        // build notification and set its properties
+        NotificationCompat.Builder builder = new NotificationCompat.Builder(this);
+        builder.setSmallIcon(android.R.drawable.ic_media_play);
+        builder.setContentTitle(mSong.title);
+        builder.setContentText(mSong.artistName);
+        builder.setLargeIcon(mSongImageBitmap);
+        builder.setContentIntent(pendingIntent);
+        builder.setOngoing(true);
+        builder.setShowWhen(false);
+        builder.setColor(ContextCompat.getColor(this, R.color.colorPrimaryDark));
+        builder.setStyle(new NotificationCompat.MediaStyle()
+                .setShowActionsInCompactView(0)
+                .setMediaSession(mMediaSessionCompat.getSessionToken()));
+
+        // return
+        return builder;
     }
 
     public State getState() {
