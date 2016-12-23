@@ -11,6 +11,7 @@ import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.media.AudioManager;
 import android.media.MediaPlayer;
+import android.net.wifi.WifiManager;
 import android.os.Binder;
 import android.os.IBinder;
 import android.os.PowerManager;
@@ -43,6 +44,7 @@ public class MusicService
 
     private AudioManager audioManager;
     private MediaSessionCompat mMediaSessionCompat;
+    private WifiManager.WifiLock mWifiLock;
 
     private OnServiceInteractionListener mListener;
 
@@ -72,14 +74,7 @@ public class MusicService
         mMediaSessionCompat.setFlags(MediaSessionCompat.FLAG_HANDLES_MEDIA_BUTTONS | MediaSessionCompat.FLAG_HANDLES_TRANSPORT_CONTROLS);
         mMediaSessionCompat.setCallback(mMediaSessionCallback);
 
-//        WifiManager.WifiLock wifiLock = ((WifiManager) getSystemService(Context.WIFI_SERVICE))
-//                .createWifiLock(WifiManager.WIFI_MODE_FULL, "mylock");
-//
-//        // acquire on play
-//        wifiLock.acquire();
-//
-//        // release on pause or stop
-//        wifiLock.release();
+        mWifiLock = ((WifiManager) getSystemService(Context.WIFI_SERVICE)).createWifiLock(WifiManager.WIFI_MODE_FULL, "musicWifiLock");
         Log.v(TAG, "created");
     }
 
@@ -102,6 +97,12 @@ public class MusicService
 
         // stop notification in case it wasn't stopped
         stopForeground(true);
+
+        // wifi lock can be releases
+        if (mWifiLock.isHeld()) {
+            mWifiLock.release();
+            mWifiLock = null;
+        }
 
         Log.v(TAG," music serivce onDestroy");
         super.onDestroy();
@@ -145,6 +146,11 @@ public class MusicService
         // stop notification
         stopForeground(true);
 
+        // wifi lock can be releases
+        if (mWifiLock.isHeld()) {
+            mWifiLock.release();
+        }
+
         // notify listeners
         if (mListener != null) {
             mListener.onAudioCompleted();
@@ -169,6 +175,11 @@ public class MusicService
 
         // stop listening for button presses
         mMediaSessionCompat.setActive(false);
+
+        // wifi lock can be releases
+        if (mWifiLock.isHeld()) {
+            mWifiLock.release();
+        }
 
         // notify listeners
         if (mListener != null) {
@@ -213,6 +224,11 @@ public class MusicService
             stopForeground(true);
 
             try {
+                // acquire wifi lock now in case of going to sleep before loading the song
+                if (!mWifiLock.isHeld()) {
+                    mWifiLock.acquire();
+                }
+
                 // reset and set song image bitmap to be used in notification.
                 // do this early so we have time for the image to set before starting notification
                 mSongImageBitmap = null;
@@ -273,6 +289,11 @@ public class MusicService
         // stop foreground but keep notification
         stopForeground(false);
 
+        // wifi lock can be releases
+        if (mWifiLock.isHeld()) {
+            mWifiLock.release();
+        }
+
         // notify listeners
         if (mListener != null) {
             mListener.onAudioPause();
@@ -300,6 +321,11 @@ public class MusicService
 
             // start foreground notification
             startForeground(NOTIFICATION_ID, notification);
+
+            // get wifi lock
+            if (!mWifiLock.isHeld()) {
+                mWifiLock.acquire();
+            }
 
             // notify listeners
             if (mListener != null) {
