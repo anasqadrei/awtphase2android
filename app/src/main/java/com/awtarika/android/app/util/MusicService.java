@@ -11,6 +11,7 @@ import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.media.AudioManager;
 import android.media.MediaPlayer;
+import android.net.Uri;
 import android.net.wifi.WifiManager;
 import android.os.Binder;
 import android.os.IBinder;
@@ -22,12 +23,18 @@ import android.support.v4.media.session.PlaybackStateCompat;
 import android.support.v7.app.NotificationCompat;
 import android.util.Log;
 
+import com.android.volley.Request;
+import com.android.volley.Response;
+import com.android.volley.VolleyError;
 import com.awtarika.android.app.R;
 import com.awtarika.android.app.SongActivity;
 import com.awtarika.android.app.model.Song;
 import com.bumptech.glide.Glide;
 import com.bumptech.glide.request.animation.GlideAnimation;
 import com.bumptech.glide.request.target.SimpleTarget;
+
+import org.json.JSONException;
+import org.json.JSONObject;
 
 import java.io.IOException;
 
@@ -125,6 +132,9 @@ public class MusicService
     public void onPrepared(MediaPlayer mediaPlayer) {
         // play
         resumeSong();
+
+        // increment counter when the song is about to be played
+        incrementSongPlaysCount();
     }
 
     @Override
@@ -373,6 +383,48 @@ public class MusicService
 
     public int getDuration() {
         return mAudioPlayer.getDuration();
+    }
+
+    private void incrementSongPlaysCount() {
+
+        try {
+            // build request url
+            Uri.Builder builder = new Uri.Builder();
+            builder.scheme(Constants.URLs.PROTOCOL)
+                    .encodedAuthority(Constants.URLs.HOST)
+                    .appendPath("song")
+                    .appendPath("play")
+                    .build();
+            String url = builder.toString();
+
+            // define json body to be sent
+            JSONObject body = new JSONObject();
+            body.put("songId", String.valueOf(mSong.id));
+            body.put("artistId", String.valueOf(mSong.artistID));
+
+            // define request and error callback
+            AwtarikaJsonObjectRequest jsObjRequest = new AwtarikaJsonObjectRequest(Request.Method.POST, url, body,
+                    new Response.Listener<JSONObject>() {
+                        @Override
+                        public void onResponse(JSONObject response) {
+                            // do nothing
+                        }
+                    },
+                    new Response.ErrorListener() {
+                        @Override
+                        public void onErrorResponse(VolleyError error) {
+                            Log.v(TAG, "JSON didn't post!");
+                            error.printStackTrace();
+                        }
+                    });
+
+            // call the request url
+            NetworkingSingleton.getInstance(this).addToRequestQueue(jsObjRequest);
+
+        } catch (JSONException e) {
+            // didn't built body properly
+            e.printStackTrace();
+        }
     }
 
     private boolean tryRequestAudioFocus() {
