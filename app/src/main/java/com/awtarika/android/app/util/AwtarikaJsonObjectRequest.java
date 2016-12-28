@@ -14,9 +14,6 @@ import java.util.Map;
  */
 
 public class AwtarikaJsonObjectRequest extends JsonObjectRequest {
-
-    // TODO: 15/11/16 check what the user agent is
-
     public AwtarikaJsonObjectRequest(int method, String url, JSONObject jsonRequest, Response.Listener<JSONObject> listener, Response.ErrorListener errorListener) {
         super(method, url, jsonRequest, listener, errorListener);
     }
@@ -25,6 +22,7 @@ public class AwtarikaJsonObjectRequest extends JsonObjectRequest {
     public Map<String, String> getHeaders() throws AuthFailureError {
         Map<String, String>  params = new HashMap<String, String>();
         params.put("Accept", "application/json");
+        params.put("User-Agent", System.getProperty("http.agent") + " awtarika android app");
         return params;
     }
 }

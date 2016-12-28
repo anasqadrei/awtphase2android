@@ -22,6 +22,7 @@ public class AwtarikaJsonArrayRequest extends JsonArrayRequest {
     public Map<String, String> getHeaders() throws AuthFailureError {
         Map<String, String>  params = new HashMap<String, String>();
         params.put("Accept", "application/json");
+        params.put("User-Agent", System.getProperty("http.agent") + " awtarika android app");
         return params;
     }
 }
