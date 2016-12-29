@@ -24,6 +24,9 @@ import com.awtarika.android.app.util.Constants;
 import com.awtarika.android.app.util.MusicServiceManager;
 import com.awtarika.android.app.util.NetworkingSingleton;
 import com.bumptech.glide.Glide;
+import com.google.android.gms.ads.AdRequest;
+import com.google.android.gms.ads.AdView;
+import com.google.android.gms.ads.MobileAds;
 import com.google.android.gms.analytics.HitBuilders;
 
 import org.json.JSONObject;
@@ -43,6 +46,14 @@ public class SongActivity extends BaseActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_song);
         gaScreenCategory = "Song";
+
+        // ad
+        MobileAds.initialize(getApplicationContext(), getString(R.string.ad_mob_application_id));
+        AdView songAdView = (AdView) findViewById(R.id.activity_song_ad_view);
+        AdRequest adRequest = new AdRequest.Builder()
+                .addTestDevice(getString(R.string.ad_mob_test_device_zte_blade))
+                .build();
+        songAdView.loadAd(adRequest);
 
         Intent intent = getIntent();
         if (intent != null && intent.hasExtra(Song.class.getSimpleName())) {

@@ -3,4 +3,8 @@
     <string name="share">إرسال</string>
     <string name="artist_likers_count">عدد المعجبين: %1$d</string>
     <string name="artist_songs_count">عدد الاغاني: %1$d</string>
+    <string name="ad_mob_application_id" translatable="false">ca-app-pub-8300933998503689~9952942888</string>
+    <string name="ad_mob_artist_screen_banner_ad_unit_id" translatable="false">ca-app-pub-8300933998503689/5383142487</string>
+    <string name="ad_mob_song_screen_banner_ad_unit_id" translatable="false">ca-app-pub-8300933998503689/4405936886</string>
+    <string name="ad_mob_test_device_zte_blade" translatable="false">632B5D5230136CA02BFFC6283237C90E</string>
 </resources>

@@ -1,41 +1,27 @@
 {
   "project_info": {
-    "project_number": "792823835193",
-    "project_id": "fresh-delight-572"
+    "project_number": "281691024242",
+    "firebase_url": "https://awtarika-30c65.firebaseio.com",
+    "project_id": "awtarika-30c65",
+    "storage_bucket": "awtarika-30c65.appspot.com"
   },
   "client": [
     {
       "client_info": {
-        "mobilesdk_app_id": "1:792823835193:android:266fe059b6b3d598",
+        "mobilesdk_app_id": "1:281691024242:android:266fe059b6b3d598",
         "android_client_info": {
           "package_name": "com.awtarika.android.app"
         }
       },
       "oauth_client": [
         {
-          "client_id": "792823835193-vauulcdojfttc9n5h2vk4rv3r22aar53.apps.googleusercontent.com",
-          "client_type": 3
-        },
-        {
-          "client_id": "792823835193-deivo20j8ai9l9cenjosc16nbk1cidqc.apps.googleusercontent.com",
-          "client_type": 3
-        },
-        {
-          "client_id": "792823835193-r90b6k39e5t23n4p7b574fj4pj244ufu.apps.googleusercontent.com",
-          "client_type": 3
-        },
-        {
-          "client_id": "792823835193-0spra2e0fvns8qdg4k54jvp4ab3c9v9v.apps.googleusercontent.com",
-          "client_type": 3
-        },
-        {
-          "client_id": "792823835193-on534r9gn4ongtitnnee4a4e26qc2q75.apps.googleusercontent.com",
+          "client_id": "281691024242-nt1u43g45bmprdi7esvi9db0e47uoofp.apps.googleusercontent.com",
           "client_type": 3
         }
       ],
       "api_key": [
         {
-          "current_key": "AIzaSyChxwwdaFnUPQZzOCevio-4Q_sZMOPwU7Q"
+          "current_key": "AIzaSyBC555FxcG7hah3npNa3SBgja008iXiUU4"
         }
       ],
       "services": {
@@ -50,7 +36,7 @@
           "other_platform_oauth_client": []
         },
         "ads_service": {
-          "status": 1
+          "status": 2
         }
       }
     }

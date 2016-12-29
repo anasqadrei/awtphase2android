@@ -27,6 +27,9 @@ import com.awtarika.android.app.util.AwtarikaJsonArrayRequest;
 import com.awtarika.android.app.util.Constants;
 import com.awtarika.android.app.util.NetworkingSingleton;
 import com.bumptech.glide.Glide;
+import com.google.android.gms.ads.AdRequest;
+import com.google.android.gms.ads.AdView;
+import com.google.android.gms.ads.MobileAds;
 import com.google.android.gms.analytics.HitBuilders;
 
 import org.json.JSONArray;
@@ -60,6 +63,14 @@ public class ArtistActivity extends BaseActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_artist);
         gaScreenCategory = "Artist";
+
+        // ad
+        MobileAds.initialize(getApplicationContext(), getString(R.string.ad_mob_application_id));
+        AdView artistAdView = (AdView) findViewById(R.id.activity_artist_ad_view);
+        AdRequest adRequest = new AdRequest.Builder()
+                .addTestDevice(getString(R.string.ad_mob_test_device_zte_blade))
+                .build();
+        artistAdView.loadAd(adRequest);
 
         // get artist
         Intent intent = getIntent();
