@@ -4,7 +4,6 @@ import android.content.Context;
 import android.content.Intent;
 import android.net.Uri;
 import android.os.Bundle;
-import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -19,6 +18,7 @@ import com.android.volley.VolleyError;
 import com.awtarika.android.app.model.Song;
 import com.awtarika.android.app.util.AwtarikaJsonObjectRequest;
 import com.awtarika.android.app.util.Constants;
+import com.awtarika.android.app.util.LoggerSingleton;
 import com.awtarika.android.app.util.NetworkingSingleton;
 
 import org.json.JSONArray;
@@ -77,7 +77,7 @@ public class HashtagActivity extends BaseActivity {
                 }
             });
         } else {
-            Log.v(TAG, "Hashtag is not here!!!");
+            LoggerSingleton.getInstance(getApplicationContext()).log(TAG + " Hashtag wasn't passed in the intent");
         }
     }
 
@@ -147,8 +147,8 @@ public class HashtagActivity extends BaseActivity {
                             mSongsListAdapter.notifyDataSetChanged();
 
                         } catch (JSONException e) {
-                            Log.v(TAG, "Parsing JSON Exception");
-                            e.printStackTrace();
+                            String errorMessage = TAG + " getSongsList(" + page + "). Server Error: " + e.getMessage();
+                            LoggerSingleton.getInstance(getApplicationContext()).log(errorMessage);
                         } finally {
                             fetching = false;
                         }
@@ -157,8 +157,11 @@ public class HashtagActivity extends BaseActivity {
 
             @Override
             public void onErrorResponse(VolleyError error) {
-                Log.v(TAG, "JSON didn't work!");
-                error.printStackTrace();
+                String errorMessage = TAG + " getSongsList(" + page + "). Server Error: ";
+                if (error.networkResponse != null && error.networkResponse.data != null) {
+                    errorMessage += new String(error.networkResponse.data);
+                }
+                LoggerSingleton.getInstance(getApplicationContext()).log(errorMessage);
                 fetching = false;
             }
         });

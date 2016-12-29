@@ -21,7 +21,6 @@ import android.support.v4.media.session.MediaButtonReceiver;
 import android.support.v4.media.session.MediaSessionCompat;
 import android.support.v4.media.session.PlaybackStateCompat;
 import android.support.v7.app.NotificationCompat;
-import android.util.Log;
 
 import com.android.volley.Request;
 import com.android.volley.Response;
@@ -81,8 +80,8 @@ public class MusicService
         mMediaSessionCompat.setFlags(MediaSessionCompat.FLAG_HANDLES_MEDIA_BUTTONS | MediaSessionCompat.FLAG_HANDLES_TRANSPORT_CONTROLS);
         mMediaSessionCompat.setCallback(mMediaSessionCallback);
 
+        // create wifi lock manager
         mWifiLock = ((WifiManager) getSystemService(Context.WIFI_SERVICE)).createWifiLock(WifiManager.WIFI_MODE_FULL, "musicWifiLock");
-        Log.v(TAG, "created");
     }
 
     @Override
@@ -111,7 +110,6 @@ public class MusicService
             mWifiLock = null;
         }
 
-        Log.v(TAG," music serivce onDestroy");
         super.onDestroy();
     }
 
@@ -170,7 +168,7 @@ public class MusicService
     @Override
     public boolean onError(MediaPlayer mediaPlayer, int type, int extra) {
         // Log the error
-        Log.v(TAG, "MediaPlayer Error type: " + String.valueOf(type) + " extra: " + String.valueOf(extra));
+        LoggerSingleton.getInstance(getApplicationContext()).log(TAG + " onError. type: " + String.valueOf(type) + " extra: " + String.valueOf(extra));
 
         // change state
         PlaybackStateCompat playbackState = new PlaybackStateCompat.Builder()
@@ -264,11 +262,9 @@ public class MusicService
                 mPlayerState = State.PREPARING;
 
             } catch (IllegalArgumentException iae) {
-                Log.v(TAG, "IllegalArgumentException on setDataSource");
-                iae.printStackTrace();
+                LoggerSingleton.getInstance(getApplicationContext()).log(TAG + " startPlayingSong(" + mSong.id + ") " + iae.getMessage());
             } catch (IOException ioe) {
-                Log.v(TAG, "IOException on setDataSource");
-                ioe.printStackTrace();
+                LoggerSingleton.getInstance(getApplicationContext()).log(TAG + " startPlayingSong(" + mSong.id + ") " + ioe.getMessage());
             }
         }
     }
@@ -413,8 +409,11 @@ public class MusicService
                     new Response.ErrorListener() {
                         @Override
                         public void onErrorResponse(VolleyError error) {
-                            Log.v(TAG, "JSON didn't post!");
-                            error.printStackTrace();
+                            String errorMessage = TAG + " incrementSongPlaysCount(song: " + String.valueOf(mSong.id) + ", artist: " + String.valueOf(mSong.artistID) + "). Server Error: ";
+                            if (error.networkResponse != null && error.networkResponse.data != null) {
+                                errorMessage += new String(error.networkResponse.data);
+                            }
+                            LoggerSingleton.getInstance(getApplicationContext()).log(errorMessage);
                         }
                     });
 
@@ -423,7 +422,7 @@ public class MusicService
 
         } catch (JSONException e) {
             // didn't built body properly
-            e.printStackTrace();
+            LoggerSingleton.getInstance(getApplicationContext()).log(TAG + " incrementSongPlaysCount. didn't built body properly. song: " + String.valueOf(mSong.id) + ", artist: " + String.valueOf(mSong.artistID));
         }
     }
 
@@ -436,7 +435,7 @@ public class MusicService
 
             return true;
         } else {
-            Log.v(TAG, "no couldn;t focus, log");
+            LoggerSingleton.getInstance(getApplicationContext()).log(TAG + " tryRequestAudioFocus. audio focus not granted");
 
             return false;
         }

@@ -6,7 +6,6 @@ import android.net.Uri;
 import android.support.v4.view.MenuItemCompat;
 import android.os.Bundle;
 import android.support.v7.widget.ShareActionProvider;
-import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuInflater;
@@ -25,6 +24,7 @@ import com.awtarika.android.app.model.Artist;
 import com.awtarika.android.app.model.Song;
 import com.awtarika.android.app.util.AwtarikaJsonArrayRequest;
 import com.awtarika.android.app.util.Constants;
+import com.awtarika.android.app.util.LoggerSingleton;
 import com.awtarika.android.app.util.NetworkingSingleton;
 import com.bumptech.glide.Glide;
 import com.google.android.gms.ads.AdRequest;
@@ -121,7 +121,7 @@ public class ArtistActivity extends BaseActivity {
                 }
             });
         } else {
-            Log.v(TAG, "artist is not here, say something");
+            LoggerSingleton.getInstance(getApplicationContext()).log(TAG + " Artist wasn't passed in the intent");
         }
     }
 
@@ -187,7 +187,7 @@ public class ArtistActivity extends BaseActivity {
         return true;
     }
 
-    private void getSongsList(final int page, String sort) {
+    private void getSongsList(final int page, final String sort) {
 
         // build request url
         Uri.Builder builder = new Uri.Builder();
@@ -223,8 +223,8 @@ public class ArtistActivity extends BaseActivity {
                             mSongsListAdapter.notifyDataSetChanged();
 
                         } catch (JSONException e) {
-                            Log.v(TAG, "Parsing JSON Exception");
-                            e.printStackTrace();
+                            String errorMessage = TAG + " getSongsList(" + page + "," + sort + "). Server Error: " + e.getMessage();
+                            LoggerSingleton.getInstance(getApplicationContext()).log(errorMessage);
                         } finally {
                             fetching = false;
                         }
@@ -233,8 +233,11 @@ public class ArtistActivity extends BaseActivity {
 
             @Override
             public void onErrorResponse(VolleyError error) {
-                Log.v(TAG, "JSON didn't work!");
-                error.printStackTrace();
+                String errorMessage = TAG + " getSongsList(" + page + "," + sort + "). Server Error: ";
+                if (error.networkResponse != null && error.networkResponse.data != null) {
+                    errorMessage += new String(error.networkResponse.data);
+                }
+                LoggerSingleton.getInstance(getApplicationContext()).log(errorMessage);
                 fetching = false;
             }
         });

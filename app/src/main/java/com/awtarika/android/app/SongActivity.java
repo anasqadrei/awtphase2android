@@ -6,7 +6,6 @@ import android.net.Uri;
 import android.support.v4.view.MenuItemCompat;
 import android.os.Bundle;
 import android.support.v7.widget.ShareActionProvider;
-import android.util.Log;
 import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.MenuItem;
@@ -21,6 +20,7 @@ import com.apradanas.simplelinkabletext.LinkableTextView;
 import com.awtarika.android.app.model.Song;
 import com.awtarika.android.app.util.AwtarikaJsonObjectRequest;
 import com.awtarika.android.app.util.Constants;
+import com.awtarika.android.app.util.LoggerSingleton;
 import com.awtarika.android.app.util.MusicServiceManager;
 import com.awtarika.android.app.util.NetworkingSingleton;
 import com.bumptech.glide.Glide;
@@ -101,6 +101,8 @@ public class SongActivity extends BaseActivity {
                     .centerCrop()
                     .dontAnimate()
                     .into(songImageView);
+        } else {
+            LoggerSingleton.getInstance(getApplicationContext()).log(TAG + " Song wasn't passed in the intent");
         }
     }
 
@@ -170,11 +172,10 @@ public class SongActivity extends BaseActivity {
                     @Override
                     public void onResponse(JSONObject response) {
 
-                        // parse song url
-                        String url = response.optString("url");
+                        // parse and set song url
+                        song.playbackTempURL = response.optString("url");
 
                         // start play process
-                        song.playbackTempURL = url;
                         mMiniPlayerFragment.startPlaying(song);
                         showPlaybackControls();
                         MusicServiceManager.shouldBindMusicService = true;      //for next onStart() to use
@@ -185,8 +186,11 @@ public class SongActivity extends BaseActivity {
 
             @Override
             public void onErrorResponse(VolleyError error) {
-                Log.v(TAG, "JSON didn't work!");
-                error.printStackTrace();
+                String errorMessage = TAG + " play(" + String.valueOf(song.id) + "). Server Error: ";
+                if (error.networkResponse != null && error.networkResponse.data != null) {
+                    errorMessage += new String(error.networkResponse.data);
+                }
+                LoggerSingleton.getInstance(getApplicationContext()).log(errorMessage);
             }
         });
         jsObjRequest.setTag(TAG);

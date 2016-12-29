@@ -8,7 +8,6 @@ import android.media.AudioManager;
 import android.os.Bundle;
 import android.os.IBinder;
 import android.support.v7.app.AppCompatActivity;
-import android.util.Log;
 
 import com.awtarika.android.app.util.AwtarikaApplication;
 import com.awtarika.android.app.util.MusicService;
