@@ -44,11 +44,10 @@ public class ArtistsListActivity extends BaseActivity {
     // other variables
     private boolean fetching = false;
     private ArtistsListAdapter mArtistsListAdapter;
-
     private static final String DEFAULT_SORT = "-songsCount";
+
     private static final String TAG = ArtistsListActivity.class.getSimpleName();
 
-    // TODO: 15/11/16 Google Analytics
     // TODO: 15/11/16 Caching on server for volley to cache
     // TODO: 15/11/16 Log Entries
 
@@ -57,6 +56,7 @@ public class ArtistsListActivity extends BaseActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_artists_list);
         setTitle("المطربين");
+        gaScreenCategory = "Artists List";
 
         // it means artistsList array is empty, so fetch artists
         if (savedInstanceState == null) {

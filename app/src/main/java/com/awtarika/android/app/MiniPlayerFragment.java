@@ -18,9 +18,12 @@ import android.widget.ProgressBar;
 import android.widget.TextView;
 
 import com.awtarika.android.app.model.Song;
+import com.awtarika.android.app.util.AwtarikaApplication;
 import com.awtarika.android.app.util.MusicService;
 import com.awtarika.android.app.util.MusicServiceManager;
 import com.bumptech.glide.Glide;
+import com.google.android.gms.analytics.HitBuilders;
+import com.google.android.gms.analytics.Tracker;
 
 public class MiniPlayerFragment extends Fragment implements MusicService.OnServiceInteractionListener {
 
@@ -40,6 +43,11 @@ public class MiniPlayerFragment extends Fragment implements MusicService.OnServi
     private Handler mHandler = new Handler();
     private static int PLAYBACK_PROGRESS_TIMER = 200;
 
+    // google analytics
+    private Tracker mTracker;
+    private String gaScreenCategory = "Player";
+    private String gaScreenID = "";
+
     private OnFragmentInteractionListener mListener;
 
     private static final String TAG = MiniPlayerFragment.class.getSimpleName();
@@ -50,6 +58,11 @@ public class MiniPlayerFragment extends Fragment implements MusicService.OnServi
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
+        // obtain the shared Tracker instance.
+        AwtarikaApplication application = (AwtarikaApplication) getActivity().getApplication();
+        mTracker = application.getDefaultTracker();
+        mTracker.enableAdvertisingIdCollection(true);
+
         // Inflate the layout for this fragment
         View rootView = inflater.inflate(R.layout.fragment_mini_player, container, false);
 
@@ -160,6 +173,9 @@ public class MiniPlayerFragment extends Fragment implements MusicService.OnServi
             // set metadata
             mSongTitle.setText(song.title);
             mArtistName.setText(song.artistName);
+
+            // set google analytics
+            gaScreenID = song.id + "/" + song.title + " - " + song.artistName;
 
             // if song has an image then show it, otherwise, show app icon
             if (!song.imageURL.isEmpty()) {
@@ -295,12 +311,33 @@ public class MiniPlayerFragment extends Fragment implements MusicService.OnServi
         if (mBound) {
             switch (mMusicService.getState()) {
                 case STARTED:
+                    // Google Analytics - Event
+                    mTracker.send(new HitBuilders.EventBuilder()
+                            .setCategory(gaScreenCategory)
+                            .setAction("Pause - Mini Player")
+                            .setLabel(gaScreenID)
+                            .build());
+                    // pause
                     pausePlaying();
                     break;
                 case PAUSED:
+                    // Google Analytics - Event
+                    mTracker.send(new HitBuilders.EventBuilder()
+                            .setCategory(gaScreenCategory)
+                            .setAction("Play - Mini Player")
+                            .setLabel(gaScreenID)
+                            .build());
+                    // play
                     resumePlaying();
                     break;
                 case ERROR:
+                    // Google Analytics - Event
+                    mTracker.send(new HitBuilders.EventBuilder()
+                            .setCategory(gaScreenCategory)
+                            .setAction("Close - Mini Player")
+                            .setLabel(gaScreenID)
+                            .build());
+                    // close
                     if (mListener != null) {
                         mListener.onFragmentReadyToBeKilled();
                     }

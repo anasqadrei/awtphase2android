@@ -24,6 +24,7 @@ import com.awtarika.android.app.util.Constants;
 import com.awtarika.android.app.util.MusicServiceManager;
 import com.awtarika.android.app.util.NetworkingSingleton;
 import com.bumptech.glide.Glide;
+import com.google.android.gms.analytics.HitBuilders;
 
 import org.json.JSONObject;
 
@@ -41,11 +42,13 @@ public class SongActivity extends BaseActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_song);
+        gaScreenCategory = "Song";
 
         Intent intent = getIntent();
         if (intent != null && intent.hasExtra(Song.class.getSimpleName())) {
             song = intent.getParcelableExtra(Song.class.getSimpleName());
             setTitle(song.title);
+            gaScreenID = song.id + "/" + song.title + " - " + song.artistName;
 
             //
             final TextView titleTextView = (TextView) findViewById(R.id.activity_song_title);
@@ -105,6 +108,19 @@ public class SongActivity extends BaseActivity {
             shareIntent.putExtra(Intent.EXTRA_SUBJECT, song.title);
             shareIntent.putExtra(Intent.EXTRA_TEXT, song.url);
             mShareActionProvider.setShareIntent(shareIntent);
+            mShareActionProvider.setOnShareTargetSelectedListener(new ShareActionProvider.OnShareTargetSelectedListener() {
+                @Override
+                public boolean onShareTargetSelected(ShareActionProvider source, Intent intent) {
+                    // Google Analytics - Event
+                    mTracker.send(new HitBuilders.EventBuilder()
+                            .setCategory(gaScreenCategory)
+                            .setAction("Share")
+                            .setLabel(gaScreenID)
+                            .build());
+
+                    return false;
+                }
+            });
         }
 
         return true;
@@ -119,6 +135,12 @@ public class SongActivity extends BaseActivity {
     }
 
     public void play(View view) {
+        // Google Analytics - Event
+        mTracker.send(new HitBuilders.EventBuilder()
+                .setCategory(gaScreenCategory)
+                .setAction("Play")
+                .setLabel(gaScreenID)
+                .build());
 
         // build request url
         Uri.Builder builder = new Uri.Builder();

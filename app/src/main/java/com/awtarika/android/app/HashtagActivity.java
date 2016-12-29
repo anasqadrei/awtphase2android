@@ -49,11 +49,13 @@ public class HashtagActivity extends BaseActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_hashtag);
+        gaScreenCategory = "Hashtag";
 
         Intent intent = getIntent();
         if (intent != null && intent.hasExtra("hashtag")) {
             hashtag = intent.getStringExtra("hashtag");
             setTitle(hashtag);
+            gaScreenID = hashtag;
 
             // it means songsList array is empty, so fetch songs
             if (savedInstanceState == null) {

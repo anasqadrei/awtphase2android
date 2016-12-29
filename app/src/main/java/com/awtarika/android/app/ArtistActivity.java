@@ -27,6 +27,7 @@ import com.awtarika.android.app.util.AwtarikaJsonArrayRequest;
 import com.awtarika.android.app.util.Constants;
 import com.awtarika.android.app.util.NetworkingSingleton;
 import com.bumptech.glide.Glide;
+import com.google.android.gms.analytics.HitBuilders;
 
 import org.json.JSONArray;
 import org.json.JSONException;
@@ -50,19 +51,22 @@ public class ArtistActivity extends BaseActivity {
     private Artist artist;
     private boolean fetching = false;
     private SongsListAdapter mSongsListAdapter;
-
     private static final String DEFAULT_SORT = "-playsCount";
+
     private static final String TAG = ArtistActivity.class.getSimpleName();
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_artist);
+        gaScreenCategory = "Artist";
 
+        // get artist
         Intent intent = getIntent();
         if (intent != null && intent.hasExtra(Artist.class.getSimpleName())) {
             artist = intent.getParcelableExtra(Artist.class.getSimpleName());
             setTitle(artist.name);
+            gaScreenID = artist.id + "/" + artist.name;
 
             // TODO: 17/11/16 UP navigation
 
@@ -154,6 +158,19 @@ public class ArtistActivity extends BaseActivity {
             shareIntent.putExtra(Intent.EXTRA_SUBJECT, artist.name);
             shareIntent.putExtra(Intent.EXTRA_TEXT, artist.url);
             mShareActionProvider.setShareIntent(shareIntent);
+            mShareActionProvider.setOnShareTargetSelectedListener(new ShareActionProvider.OnShareTargetSelectedListener() {
+                @Override
+                public boolean onShareTargetSelected(ShareActionProvider source, Intent intent) {
+                    // Google Analytics - Event
+                    mTracker.send(new HitBuilders.EventBuilder()
+                            .setCategory(gaScreenCategory)
+                            .setAction("Share")
+                            .setLabel(gaScreenID)
+                            .build());
+
+                    return false;
+                }
+            });
         }
 
         return true;

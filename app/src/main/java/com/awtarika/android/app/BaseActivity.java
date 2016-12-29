@@ -10,8 +10,11 @@ import android.os.IBinder;
 import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
 
+import com.awtarika.android.app.util.AwtarikaApplication;
 import com.awtarika.android.app.util.MusicService;
 import com.awtarika.android.app.util.MusicServiceManager;
+import com.google.android.gms.analytics.HitBuilders;
+import com.google.android.gms.analytics.Tracker;
 
 /**
  * Created by anasqadrei on 23/11/16.
@@ -26,6 +29,11 @@ public class BaseActivity extends AppCompatActivity implements MiniPlayerFragmen
     protected MusicService mMusicService;
     protected boolean mBound = false;
 
+    // google analytics
+    protected Tracker mTracker;
+    protected String gaScreenCategory = "";
+    protected String gaScreenID = "";
+
     private static final String TAG = BaseActivity.class.getSimpleName();
 
     @Override
@@ -34,6 +42,11 @@ public class BaseActivity extends AppCompatActivity implements MiniPlayerFragmen
 
         // direct volume key presses to the music audio stream
         setVolumeControlStream(AudioManager.STREAM_MUSIC);
+
+        // obtain the shared Tracker instance.
+        AwtarikaApplication application = (AwtarikaApplication) getApplication();
+        mTracker = application.getDefaultTracker();
+        mTracker.enableAdvertisingIdCollection(true);
 
         // get the mini player
         mMiniPlayerFragment = (MiniPlayerFragment) getFragmentManager().findFragmentById(R.id.fragment_mini_player);
@@ -65,6 +78,14 @@ public class BaseActivity extends AppCompatActivity implements MiniPlayerFragmen
     @Override
     protected void onResume() {
         super.onResume();
+
+        // Google Analytics - Screen View
+        String screenName = gaScreenCategory;
+        if (!gaScreenID.isEmpty()) {
+            screenName += ": " + gaScreenID;
+        }
+        mTracker.setScreenName(screenName);
+        mTracker.send(new HitBuilders.ScreenViewBuilder().build());
 
         // show mini player or not based on music service
         if (MusicServiceManager.musicServiceStarted) {
