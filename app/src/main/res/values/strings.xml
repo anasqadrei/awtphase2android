@@ -1,6 +1,7 @@
 <resources>
     <string name="app_name">أوتاريكا</string>
-    <string name="share">إرسال</string>
+    <string name="menu_share">إرسال</string>
+    <string name="menu_flag">إبلاغ عن حقوق الملكية</string>
     <string name="artist_likers_count">عدد المعجبين: %1$d</string>
     <string name="artist_songs_count">عدد الاغاني: %1$d</string>
     <string name="ad_mob_application_id" translatable="false">ca-app-pub-8300933998503689~9952942888</string>
