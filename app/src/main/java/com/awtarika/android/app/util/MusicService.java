@@ -5,8 +5,10 @@ import android.app.Notification;
 import android.app.NotificationManager;
 import android.app.PendingIntent;
 import android.app.Service;
+import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
+import android.content.IntentFilter;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.media.AudioManager;
@@ -51,6 +53,9 @@ public class MusicService
     private AudioManager audioManager;
     private MediaSessionCompat mMediaSessionCompat;
     private WifiManager.WifiLock mWifiLock;
+
+    private IntentFilter noisyAudioIntentFilter = new IntentFilter(AudioManager.ACTION_AUDIO_BECOMING_NOISY);
+    private BecomingNoisyReceiver myNoisyAudioStreamReceiver = new BecomingNoisyReceiver();
 
     private OnServiceInteractionListener mListener;
 
@@ -137,6 +142,9 @@ public class MusicService
 
     @Override
     public void onCompletion(MediaPlayer mediaPlayer) {
+        // unregister BECOME_NOISY BroadcastReceiver
+        unregisterReceiver(myNoisyAudioStreamReceiver);
+
         // change state
         PlaybackStateCompat playbackState = new PlaybackStateCompat.Builder()
                 .setActions(PlaybackStateCompat.ACTION_PLAY)
@@ -169,6 +177,9 @@ public class MusicService
     public boolean onError(MediaPlayer mediaPlayer, int type, int extra) {
         // Log the error
         LoggerSingleton.getInstance(getApplicationContext()).log(TAG + " onError. type: " + String.valueOf(type) + " extra: " + String.valueOf(extra));
+
+        // unregister BECOME_NOISY BroadcastReceiver
+        unregisterReceiver(myNoisyAudioStreamReceiver);
 
         // change state
         PlaybackStateCompat playbackState = new PlaybackStateCompat.Builder()
@@ -273,6 +284,9 @@ public class MusicService
         // pause player
         mAudioPlayer.pause();
 
+        // unregister BECOME_NOISY BroadcastReceiver
+        unregisterReceiver(myNoisyAudioStreamReceiver);
+
         // change state
         PlaybackStateCompat playbackState = new PlaybackStateCompat.Builder()
                 .setActions(PlaybackStateCompat.ACTION_PLAY)
@@ -311,6 +325,9 @@ public class MusicService
         if (tryRequestAudioFocus()) {
             // resume playing
             mAudioPlayer.start();
+
+            // register BECOME_NOISY BroadcastReceiver in case audio becomes noisy
+            registerReceiver(myNoisyAudioStreamReceiver, noisyAudioIntentFilter);
 
             // change state
             PlaybackStateCompat playbackState = new PlaybackStateCompat.Builder()
@@ -473,6 +490,16 @@ public class MusicService
         public MusicService getService() {
             // return this instance of LocalService so clients can call public methods
             return MusicService.this;
+        }
+    }
+
+    private class BecomingNoisyReceiver extends BroadcastReceiver {
+        @Override
+        public void onReceive(Context context, Intent intent) {
+            if (AudioManager.ACTION_AUDIO_BECOMING_NOISY.equals(intent.getAction())) {
+                // pause the playback in case audio becomes noisy
+                pauseSong(false);
+            }
         }
     }
 

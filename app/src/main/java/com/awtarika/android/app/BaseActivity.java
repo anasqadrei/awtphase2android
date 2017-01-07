@@ -5,9 +5,11 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.ServiceConnection;
 import android.media.AudioManager;
+import android.net.Uri;
 import android.os.Bundle;
 import android.os.IBinder;
 import android.support.v7.app.AppCompatActivity;
+import android.view.MenuItem;
 
 import com.awtarika.android.app.util.AwtarikaApplication;
 import com.awtarika.android.app.util.MusicService;
@@ -102,6 +104,20 @@ public class BaseActivity extends AppCompatActivity implements MiniPlayerFragmen
 
         // allow show and hide fragment. mainly to solve the "can't hide after onSavedState is called" error
         allowManageFragment = false;
+    }
+
+    @Override
+    public boolean onOptionsItemSelected(MenuItem item) {
+        switch (item.getItemId()) {
+            // flag URL
+            case R.id.menu_flag:
+                Uri copyrightUri = Uri.parse("http://www.awtarika.com/#!/copyright");
+                Intent browserIntent = new Intent(Intent.ACTION_VIEW, copyrightUri);
+                startActivity(browserIntent);
+                return true;
+        }
+
+        return super.onOptionsItemSelected(item);
     }
 
     @Override
