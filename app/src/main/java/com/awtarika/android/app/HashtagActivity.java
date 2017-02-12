@@ -5,6 +5,7 @@ import android.content.Intent;
 import android.net.Uri;
 import android.os.Bundle;
 import android.view.LayoutInflater;
+import android.view.Menu;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.AdapterView;
@@ -108,6 +109,18 @@ public class HashtagActivity extends BaseActivity {
         // cancel network activities
         fetching = false;
         NetworkingSingleton.getInstance(this).getRequestQueue().cancelAll(TAG);
+    }
+
+    @Override
+    public boolean onCreateOptionsMenu(Menu menu) {
+        // inflate menu
+        super.onCreateOptionsMenu(menu);
+
+        //hide share and flag
+        menu.findItem(R.id.menu_share).setVisible(false);
+        menu.findItem(R.id.menu_flag).setVisible(false);
+
+        return true;
     }
 
     private void getSongsList(final int page) {

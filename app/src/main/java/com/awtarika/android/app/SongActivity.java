@@ -7,7 +7,6 @@ import android.support.v4.view.MenuItemCompat;
 import android.os.Bundle;
 import android.support.v7.widget.ShareActionProvider;
 import android.view.Menu;
-import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.view.View;
 import android.widget.TextView;
@@ -109,8 +108,7 @@ public class SongActivity extends BaseActivity {
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
         // inflate menu
-        MenuInflater inflater = getMenuInflater();
-        inflater.inflate(R.menu.main, menu);
+        super.onCreateOptionsMenu(menu);
 
         // set action provider for share menu item
         MenuItem shareItem = menu.findItem(R.id.menu_share);
