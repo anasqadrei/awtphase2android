@@ -23,6 +23,7 @@
         <activity android:name=".ArtistActivity" />
         <activity android:name=".SongActivity" />
         <activity android:name=".HashtagActivity" />
+        <activity android:name=".SearchActivity" />
 
         <service
             android:name=".util.MusicService"
@@ -37,8 +38,6 @@
                 <action android:name="android.intent.action.MEDIA_BUTTON" />
             </intent-filter>
         </receiver>
-
-        <activity android:name=".SearchActivity"></activity>
     </application>
 
 </manifest>
