@@ -14,4 +14,11 @@ public class Constants {
     public class LogEntries {
         public final static String TOKEN = "5321e40a-65f7-40d1-b677-188fbbec5dd3";
     }
+
+    public class ElasticSearch {
+        public class Type {
+            public final static String ARTISTS = "artists";
+            public final static String SONGS = "songs";
+        }
+    }
 }

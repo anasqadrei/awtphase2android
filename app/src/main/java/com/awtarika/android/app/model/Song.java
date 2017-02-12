@@ -47,8 +47,8 @@ public class Song implements Parcelable {
         song.description = parsedSong.optString("desc");
         song.imageURL = parsedSong.optString("image");
         song.durationDesc = parsedSong.optString("durationDesc");
-        song.playsCount = parsedSong.getInt("playsCount");
-        song.likesCount = parsedSong.getInt("likesCount");
+        song.playsCount = parsedSong.optInt("playsCount");
+        song.likesCount = parsedSong.optInt("likesCount");
 
         return song;
     }
