@@ -34,6 +34,7 @@ import com.awtarika.android.app.util.AwtarikaJsonObjectRequest;
 import com.awtarika.android.app.util.Constants;
 import com.awtarika.android.app.util.LoggerSingleton;
 import com.awtarika.android.app.util.NetworkingSingleton;
+import com.google.android.gms.analytics.HitBuilders;
 
 import org.json.JSONArray;
 import org.json.JSONException;
@@ -168,6 +169,13 @@ public class SearchActivity extends BaseActivity {
                 if (actionId == EditorInfo.IME_ACTION_SEARCH) {
                     // set search term for activity
                     searchTerm = textView.getText().toString();
+
+                    // Google Analytics - Event
+                    mTracker.send(new HitBuilders.EventBuilder()
+                            .setCategory(gaScreenCategory)
+                            .setAction("Search")
+                            .setLabel(searchTerm)
+                            .build());
 
                     // reset
                     searchResultsList.clear();
