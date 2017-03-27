@@ -86,7 +86,7 @@ public class MusicService
         mMediaSessionCompat.setCallback(mMediaSessionCallback);
 
         // create wifi lock manager
-        mWifiLock = ((WifiManager) getSystemService(Context.WIFI_SERVICE)).createWifiLock(WifiManager.WIFI_MODE_FULL, "musicWifiLock");
+        mWifiLock = ((WifiManager) getApplicationContext().getSystemService(Context.WIFI_SERVICE)).createWifiLock(WifiManager.WIFI_MODE_FULL, "musicWifiLock");
     }
 
     @Override
