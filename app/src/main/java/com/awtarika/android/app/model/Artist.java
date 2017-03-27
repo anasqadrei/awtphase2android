@@ -36,7 +36,7 @@ public class Artist implements Parcelable {
         final Artist artist = new Artist(parsedArtist.getInt("_id"), parsedArtist.getString("name"));
 
         artist.url = parsedArtist.optString("url");
-        artist.imageURL = parsedArtist.optString("image");
+        artist.imageURL = parsedArtist.optString("defaultImage");
         artist.totalSongsPages = parsedArtist.optInt("totalSongsPages");
         artist.songsPageSize = parsedArtist.optInt("songsPageSize");
         artist.likersCount = parsedArtist.optInt("likersCount");
