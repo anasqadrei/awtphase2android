@@ -2,6 +2,7 @@ package com.awtarika.android.app.util;
 
 import android.app.Fragment;
 import android.app.Notification;
+import android.app.NotificationChannel;
 import android.app.NotificationManager;
 import android.app.PendingIntent;
 import android.app.Service;
@@ -16,14 +17,16 @@ import android.media.MediaPlayer;
 import android.net.Uri;
 import android.net.wifi.WifiManager;
 import android.os.Binder;
+import android.os.Build;
 import android.os.IBinder;
 import android.os.PowerManager;
+import android.support.annotation.RequiresApi;
 import android.support.v4.content.ContextCompat;
 import android.support.v4.media.session.MediaButtonReceiver;
 import android.support.v4.media.session.MediaSessionCompat;
 import android.support.v4.media.session.PlaybackStateCompat;
-import android.support.v7.app.NotificationCompat;
-
+import android.support.v4.app.NotificationCompat;
+import android.support.v4.media.app.NotificationCompat.MediaStyle;
 import com.android.volley.Request;
 import com.android.volley.Response;
 import com.android.volley.VolleyError;
@@ -33,10 +36,8 @@ import com.awtarika.android.app.model.Song;
 import com.bumptech.glide.Glide;
 import com.bumptech.glide.request.animation.GlideAnimation;
 import com.bumptech.glide.request.target.SimpleTarget;
-
 import org.json.JSONException;
 import org.json.JSONObject;
-
 import java.io.IOException;
 
 public class MusicService
@@ -343,6 +344,8 @@ public class MusicService
                     .build();
 
             // start foreground notification
+            Intent intent = new Intent(this, MusicService.class);
+            ContextCompat.startForegroundService(this, intent);
             startForeground(NOTIFICATION_ID, notification);
 
             // get wifi lock
@@ -357,6 +360,24 @@ public class MusicService
         }
     }
 
+    private static final String CHANNEL_ID = "media_playback_channel";
+
+    @RequiresApi(Build.VERSION_CODES.O)
+    private void createChannel() {
+        NotificationManager mNotificationManager = (NotificationManager) this.getSystemService(Context.NOTIFICATION_SERVICE);
+        // The user-visible name of the channel.
+        CharSequence name = "Media playback";
+        // The user-visible description of the channel.
+        String description = "Media playback controls";
+        int importance = NotificationManager.IMPORTANCE_LOW;
+        NotificationChannel mChannel = new NotificationChannel(CHANNEL_ID, name, importance);
+        // Configure the notification channel.
+        mChannel.setDescription(description);
+        mChannel.setShowBadge(false);
+        mChannel.setLockscreenVisibility(Notification.VISIBILITY_PUBLIC);
+        mNotificationManager.createNotificationChannel(mChannel);
+    }
+
     private NotificationCompat.Builder buildInitialNotification() {
         // set notification intent
         Intent notificationIntent = new Intent(this, SongActivity.class);
@@ -368,8 +389,13 @@ public class MusicService
             mSongImageBitmap = BitmapFactory.decodeResource(this.getResources(), R.mipmap.ic_launcher);
         }
 
+        // You only need to create the channel on API 26+ devices
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            createChannel();
+        }
+
         // build notification and set its properties
-        NotificationCompat.Builder builder = new NotificationCompat.Builder(this);
+        NotificationCompat.Builder builder = new NotificationCompat.Builder(this, CHANNEL_ID);
         builder.setSmallIcon(android.R.drawable.ic_media_play);
         builder.setContentTitle(mSong.title);
         builder.setContentText(mSong.artistName);
@@ -378,7 +404,7 @@ public class MusicService
         builder.setOngoing(true);
         builder.setShowWhen(false);
         builder.setColor(ContextCompat.getColor(this, R.color.colorPrimaryDark));
-        builder.setStyle(new NotificationCompat.MediaStyle()
+        builder.setStyle(new MediaStyle()
                 .setShowActionsInCompactView(0)
                 .setMediaSession(mMediaSessionCompat.getSessionToken()));
 
