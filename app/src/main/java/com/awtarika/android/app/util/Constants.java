@@ -6,7 +6,7 @@ package com.awtarika.android.app.util;
 
 public class Constants {
     public class URLs {
-        public final static String PROTOCOL = "http";
+        public final static String PROTOCOL = "https";
         public final static String HOST = "www.awtarika.com";
     }
 
